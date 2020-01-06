@@ -5,7 +5,6 @@
 #include <queue>
 
 void bfsCPU(Graph &G) {
-    for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
     G.distances[G.root] = 0;
     std::queue<int> Q;
     Q.push(G.root);
@@ -26,30 +25,18 @@ void bfsCPU(Graph &G) {
 
 void runCpu(int startVertex, Graph &G) {
     G.root = startVertex;
-    printf("Starting sequential bfs.\n");
-
-
+    for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
+    printf("Starting sequential bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
     bfsCPU(G);
     auto end = std::chrono::system_clock::now();
-
-
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     for(int i = 0; i < G.distances.size(); i++) printf("%d ", G.distances[i]);
-
-    printf("\n Elapsed time in milliseconds : %f ms.\n\n", duration);
+    printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     
 }
 
-int main(void)
-{
-    Graph G;
-    G.cvector = {1, 3, 0, 2, 4, 4, 5, 7, 8, 6, 8};
-    G.rvector = {0, 2, 5, 5, 6, 8, 9, 9, 11, 11};
-    //run CPU sequential bfs
-    runCpu(0, G);
-    return 0;
-}
+
 
 
 
@@ -210,4 +197,15 @@ void assignVerticesNextQueue(int *d_adjacencyList, int *d_edgesOffset, int *d_ed
     }
 }
 
+}
+
+int main(void)
+{
+    Graph G;
+    G.cvector = {1, 3, 0, 2, 4, 4, 5, 7, 8, 6, 8};
+    G.rvector = {0, 2, 5, 5, 6, 8, 9, 9, 11, 11};
+    //run CPU sequential bfs
+    runCpu(0, G);
+    //run GPU parallel bfs
+    return 0;
 }
