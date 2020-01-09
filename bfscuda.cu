@@ -40,8 +40,8 @@ __global__ void
 cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
 {
     int tid = threadIdx.x + blockIdx.x*blockDim.x;
-    c_queue[tid] = 999;
     if(tid < c_queuesize) {
+        c_queue[0] = 999;
         for(int i = rvector[tid]; i < rvector[tid + 1]; i++) {
             printf("\n works fine for me %d \n", cvector[tid]);
         }
