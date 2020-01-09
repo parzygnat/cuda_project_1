@@ -52,7 +52,6 @@ void runGpu(int startVertex, Graph &G) {
     G.root = startVertex;
     for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
     printf("Starting cuda  bfs.\n\n\n");
-    auto start = std::chrono::system_clock::now();
     int level = 0;
     int* c_queue;
     int* n_queue;
@@ -75,10 +74,11 @@ void runGpu(int startVertex, Graph &G) {
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
     c_queue[0] = G.root;
     c_queuesize = 1;
-
+    level = 0;
+    auto start = std::chrono::system_clock::now();
     while(c_queuesize != 0){
         printf("im working\n");
-        cudabfs<<<c_queuesize/1024 + 1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
+        cudabfs<<<1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
         ++level;
         c_queuesize = 0;
 
