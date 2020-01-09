@@ -39,8 +39,14 @@ void runCpu(int startVertex, Graph &G) {
 __global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
 {
     int tid = threadIdx.x;
-    if(tid < c_queuesize)
-        printf("my tid is %d \n", tid);
+    if(tid < c_queuesize) {
+        int degree = 0;
+        int u = c_queue[tid]
+        for(int i = rvector[u]; i < rvector[u + 1]; i++) {
+            degree++;
+            printf("ive changed the degree of node %d \n", u);
+        }
+    };
 }
 
 void runGpu(int startVertex, Graph &G) {
@@ -48,6 +54,7 @@ void runGpu(int startVertex, Graph &G) {
     for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
     printf("Starting cuda  bfs.\n\n\n");
     int level = 0;
+    int num_blocks;
     int* c_queue;
     int* n_queue;
     int* block_alloc_size;
@@ -73,7 +80,8 @@ void runGpu(int startVertex, Graph &G) {
     n_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
-    cudabfs<<<1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
+    num_blocks = c_queuesize/1024 + 1;
+    cudabfs<<<num_blocks, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
     printf("it is indeed %d", c_queue[0]);
     c_queuesize = 0;
     auto end = std::chrono::system_clock::now();
