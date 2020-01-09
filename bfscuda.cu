@@ -68,7 +68,7 @@ __global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, 
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
-                if (thid + (nodeSize >> 1) < size) {
+                if (thid + (nodeSize >> 1) < c_queuesize) {
                     int next_position = local_tid + (nodeSize >> 1);
                     int tmp = prefixSum[local_tid];
                     prefixSum[local_tid] -= prefixSum[next_position];
@@ -84,8 +84,37 @@ __global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, 
         }
     }
     
-    if(tid < initial) {
-        if(int_initial[tid])
+    if(tid < _initial) {
+        b_initial[tid] = true;
+        if(distances[int_initial[tid]] < 0)
+            b_initial[tid] = false;
+
+            
+        for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
+            __syncthreads();
+            if ((local_tid & (nodeSize - 1)) == 0) {
+                if (tid + (nodeSize >> 1) < _initial) {
+                    int nextPosition = local_tid + (nodeSize >> 1);
+                    prefixSum[local_tid] += prefixSum[nextPosition];
+                }
+            }
+        }
+        if (local_tid == 0) {
+            int block = tid >> 10;
+            initial = block_alloc_size[block + 1] = prefixSum[local_tid];
+        }
+        for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
+            __syncthreads();
+            if ((local_tid & (nodeSize - 1)) == 0) {
+                if (thid + (nodeSize >> 1) < _initial) {
+                    int next_position = local_tid + (nodeSize >> 1);
+                    int tmp = prefixSum[local_tid];
+                    prefixSum[local_tid] -= prefixSum[next_position];
+                    prefixSum[next_position] = tmp;
+
+                }
+            }
+        }
     }
         
     }
