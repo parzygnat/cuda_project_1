@@ -41,12 +41,12 @@ __global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, 
     int tid = threadIdx.x;
     if(tid < c_queuesize) {
         int degree = 0;
-        int u = c_queue[tid]
+        int u = c_queue[tid];
         for(int i = rvector[u]; i < rvector[u + 1]; i++) {
             degree++;
-            printf("ive changed the degree of node %d \n", u);
+            printf("ive changed the degree of node %d to %d\n", u, degree);
         }
-    };
+    }
 }
 
 void runGpu(int startVertex, Graph &G) {
