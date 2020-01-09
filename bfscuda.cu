@@ -3,6 +3,8 @@
 #include "graph.h"
 #include "bfscpu.h"
 #include <queue>
+#include <thrust/copy.h>
+
 
 void bfsCPU(Graph &G) {
     G.distances[G.root] = 0;
@@ -36,16 +38,56 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
+__global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int level)
 {
     int tid = threadIdx.x;
+    int _initial;
+
     if(tid < c_queuesize) {
+        __shared__ int prefixSum[1024];
+        int local_tid = threadIdx.x;
         int degree = 0;
         int u = c_queue[tid];
-        for(int i = rvector[u]; i < rvector[u + 1]; i++) {
-            degree++;
-            printf("ive changed the degree of node %d to %d\n", u, degree);
+        prefixSum[tid] = rvector[u + 1] - rvector[u];
+        __shared__ int int_initial[1024];
+        __shared__ int b_initial[1024];
+                
+        for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
+            __syncthreads();
+            if ((local_tid & (nodeSize - 1)) == 0) {
+                if (tid + (nodeSize >> 1) < c_queuesize) {
+                    int nextPosition = local_tid + (nodeSize >> 1);
+                    prefixSum[local_tid] += prefixSum[nextPosition];
+                }
+            }
         }
+        if (local_tid == 0) {
+            int block = tid >> 10;
+            initial = block_alloc_size[block + 1] = prefixSum[local_tid];
+        }
+        for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
+            __syncthreads();
+            if ((local_tid & (nodeSize - 1)) == 0) {
+                if (thid + (nodeSize >> 1) < size) {
+                    int next_position = local_tid + (nodeSize >> 1);
+                    int tmp = prefixSum[local_tid];
+                    prefixSum[local_tid] -= prefixSum[next_position];
+                    prefixSum[next_position] = tmp;
+
+                }
+            }
+        }
+        int iter = 0;
+        for(int i = rvector[u]; i < rvector[u + 1]; i++) {
+            int_initial[iter + prefixSum[tid]] = cvector[i];
+            iter++;
+        }
+    }
+    
+    if(tid < initial) {
+        if(int_initial[tid])
+    }
+        
     }
 }
 
@@ -59,7 +101,6 @@ void runGpu(int startVertex, Graph &G) {
     int* n_queue;
     int* block_alloc_size;
     int* distances;
-    int* degrees;
     int* cvector;
     int* rvector;
     int c_queuesize;
@@ -69,7 +110,6 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&n_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
-    cudaMallocManaged(&degrees, num_vertices*sizeof(int));
     cudaMallocManaged(&cvector, G.cvector.size()*sizeof(int));
     cudaMallocManaged(&rvector, G.rvector.size()*sizeof(int));
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
@@ -81,7 +121,7 @@ void runGpu(int startVertex, Graph &G) {
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
     num_blocks = c_queuesize/1024 + 1;
-    cudabfs<<<num_blocks, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
+    cudabfs<<<num_blocks, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, level);
     printf("it is indeed %d", c_queue[0]);
     c_queuesize = 0;
     auto end = std::chrono::system_clock::now();
@@ -91,53 +131,11 @@ void runGpu(int startVertex, Graph &G) {
     cudaFree(n_queue);
     cudaFree(block_alloc_size);
     cudaFree(distances);
-    cudaFree(degrees);
     cudaFree(cvector);
     cudaFree(rvector);
     
 }
 
-__global__ void
- prescan(float *g_odata, float *g_idata, int n) 
- {
- extern __shared__ float temp[]; 
- int thid = threadIdx.x;
- int offset = 1; 
- temp[2*thid] = g_idata[2*thid]; // load input into shared memory
- temp[2*thid+1] = g_idata[2*thid+1];
- for (int d = n>>1; d > 0; d >>= 1)   // build sum in place up the tree
- {
-    __syncthreads();
-    if (thid < d)    
-    { 
-        int ai = offset*(2*thid+1)-1; 
-        int bi = offset*(2*thid+2)-1;  
-        temp[bi] += temp[ai];
-    }
-    offset <<= 2;
- } 
-    if (thid == n - 1)
-    {
-      temp[n - 1] = 0;
-    } // clear the last element  
-
-for (int d = 1; d < n; d *= 2) // traverse down tree & build scan
-{      
-    offset >>= 1;
-    __syncthreads();      
-    if (thid < d)      
-    { 
-      int ai = offset*(2*thid+1)-1;
-      int bi = offset*(2*thid+2)-1; 
-      float t = temp[ai];
-      temp[ai] = temp[bi];
-      temp[bi] += t;       
-      } 
-} 
-      __syncthreads(); 
-      g_odata[2*thid] = temp[2*thid]; // write results to device memory      
-      g_odata[2*thid+1] = temp[2*thid+1]; 
-} 
 
 int main(void)
 {
