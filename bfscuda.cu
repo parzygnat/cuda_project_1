@@ -75,13 +75,13 @@ void runGpu(int startVertex, Graph &G) {
     c_queue[0] = G.root;
     c_queuesize = 1;
 
-    while(queuesize){
+    while(c_queuesize){
         cudabfs<<<queuesize/1024 + 1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
         ++level;
         c_queuesize = n_queuesize;
 
     }
-    auto end = std::system_clock::now();
+    auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     for(int i = 0; i < G.distances.size(); i++) printf("%d ", G.distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
