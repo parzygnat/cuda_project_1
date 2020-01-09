@@ -40,7 +40,7 @@ __global__ void
 cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
 {
     int tid = threadIdx.x + blockIdx.x*blockDim.x;
-    printf("all good\n");
+    c_queue[tid] = 999;
     if(tid < c_queuesize) {
         for(int i = rvector[tid]; i < rvector[tid + 1]; i++) {
             printf("\n works fine for me %d \n", cvector[tid]);
@@ -80,6 +80,7 @@ void runGpu(int startVertex, Graph &G) {
         printf("im working\n");
         cudabfs<<<1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
         ++level;
+        printf("it is indeed %d", c_queue[0]);
         c_queuesize = 0;
 
     }
