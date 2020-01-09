@@ -39,8 +39,8 @@ void runCpu(int startVertex, Graph &G) {
 __global__ void
 cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
 {
-    int tid = threadIdx.x + blockIdx.x*blockSize.x;
-    if(tid < queuesize) {
+    int tid = threadIdx.x + blockIdx.x*blockDim.x;
+    if(tid < c_queuesize) {
         for(int i = rvector[tid]; i < rvector[tid + 1]; i++) {
             printf("\n works fine for me %d \n", cvector[tid]);
         }
@@ -68,7 +68,6 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
     cudaMallocManaged(&degrees, num_vertices*sizeof(int));
-    cudaMallocManaged(&queuesize, num_vertices*sizeof(int));
     cudaMallocManaged(&cvector, G.cvector.size()*sizeof(int));
     cudaMallocManaged(&rvector, G.rvector.size()*sizeof(int));
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
