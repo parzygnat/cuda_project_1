@@ -42,9 +42,6 @@ cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize,
     int tid = threadIdx.x + blockIdx.x*blockDim.x;
     if(tid < c_queuesize) {
         c_queue[0] = 999;
-        for(int i = rvector[tid]; i < rvector[tid + 1]; i++) {
-            printf("\n works fine for me %d \n", cvector[tid]);
-        }
     }
 }
 
