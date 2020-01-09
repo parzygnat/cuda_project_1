@@ -39,7 +39,8 @@ void runCpu(int startVertex, Graph &G) {
 __global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
 {
     int tid = threadIdx.x;
-    printf("my tid is %d \n", tid);
+    if(tid < c_queuesize)
+        printf("my tid is %d \n", tid);
 }
 
 void runGpu(int startVertex, Graph &G) {
