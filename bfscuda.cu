@@ -73,12 +73,18 @@ void runGpu(int startVertex, Graph &G) {
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
     cudabfs<<<1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
-    deviceSynchronize();
     printf("it is indeed %d", c_queue[0]);
     c_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
+    cudaFree(c_queue);
+    cudaFree(n_queue);
+    cudaFree(block_alloc_size);
+    cudaFree(distances);
+    cudaFree(degrees);
+    cudaFree(cvector);
+    cudaFree(rvector);
     
 }
 
