@@ -50,7 +50,7 @@ cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize,
 void runGpu(int startVertex, Graph &G) {
     G.root = startVertex;
     for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
-    printf("Starting sequential bfs.\n\n\n");
+    printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
     int level = 0;
     int* c_queue;
@@ -75,15 +75,14 @@ void runGpu(int startVertex, Graph &G) {
     c_queue[0] = G.root;
     c_queuesize = 1;
 
-    while(c_queuesize){
+    while(c_queuesize != 0){
         cudabfs<<<c_queuesize/1024 + 1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
         ++level;
-        c_queuesize = n_queuesize;
+        c_queuesize = 0;
 
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    for(int i = 0; i < G.distances.size(); i++) printf("%d ", G.distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     
 }
