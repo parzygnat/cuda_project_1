@@ -1,7 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include "graph.h"
-#include "bfsCPU.h"
+#include "bfscpu.h"
 #include <queue>
 
 void bfsCPU(Graph &G) {
