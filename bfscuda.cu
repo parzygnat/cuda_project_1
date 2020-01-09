@@ -38,11 +38,8 @@ void runCpu(int startVertex, Graph &G) {
 
 __global__ void cudabfs(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int n_queuesize, int* block_alloc_size, int* distances, int* degrees, int level)
 {
-    int tid = threadIdx.x + blockIdx.x*blockDim.x;
+    int tid = threadIdx.x;
     printf("my tid is %d \n", tid);
-    if(tid < c_queuesize) {
-        c_queue[0] = 999;
-    }
 }
 
 void runGpu(int startVertex, Graph &G) {
@@ -76,6 +73,7 @@ void runGpu(int startVertex, Graph &G) {
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
     cudabfs<<<1, 1024>>>(cvector, rvector, c_queue, n_queue, c_queuesize, n_queuesize, block_alloc_size, distances, degrees, level);
+    deviceSynchronize();
     printf("it is indeed %d", c_queue[0]);
     c_queuesize = 0;
     auto end = std::chrono::system_clock::now();
