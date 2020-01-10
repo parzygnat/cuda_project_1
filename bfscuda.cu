@@ -334,8 +334,8 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    G.cvector = {1, 3, 0, 2, 4, 4, 5, 7, 8, 6, 8};
-    G.rvector = {0, 2, 5, 5, 6, 8, 9, 9, 11, 11};
+    G.cvector = {1, 5, 0, 2, 6, 1, 3, 7, 2, 4, 8, 3, 9, 0, 6, 10, 1, 5, 7, 11, 2, 6, 8, 12, 3, 7, 9, 13, 4, 8, 14, 5, 11, 6, 10, 12, 7, 11, 13, 8, 12, 14, 9, 13};
+    G.rvector = {0, 2, 5, 8, 11, 13, 16, 20, 24, 28, 31, 33, 36, 39,42, 44};
     //run CPU sequential bfs
     runCpu(0, G);
     //run GPU parallel bfs
