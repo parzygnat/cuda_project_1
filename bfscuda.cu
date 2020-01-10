@@ -228,7 +228,7 @@ void runGpu(int startVertex, Graph &G) {
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
     v_queue[0] = G.root;
     block_alloc_size[0] = 0;
-    v_queuesize = 1;
+    *v_queuesize = 1;
     level = 0;
     int mem;
     e_queuesize = 0;
@@ -238,7 +238,7 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = *v_queuesize/1024 + 1;
         expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         num_blocks = *e_queuesize/1024 + 1;
-        mem = 2*e_queuesize*sizeof(int);
+        mem = *e_queuesize*sizeof(int)*2;
         contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         level++;
         break;
