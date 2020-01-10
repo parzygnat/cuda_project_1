@@ -52,9 +52,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
 
         //we create a block shared array of degrees of the elements of the current vertex frontier
-        prefixSum[tid] = rvector[u + 1] - rvector[u];
-        printf("I'm thread %d, my u is %d and my prefix sum is %d in round %d\n", tid, u, prefixSum[tid], level );
-        
+        prefixSum[tid] = rvector[u + 1] - rvector[u];        
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
         int offset = 1;
@@ -140,7 +138,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(*e_queuesize > 1024) {
         n = 1024;
     }
-    printf("E queuesize is %d\n", *e_queuesize);
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
@@ -223,7 +220,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(b1_initial[local_tid])
     {
         distances[e_queue[local_tid]] = level + 1;
-        v_queue[block_alloc_size[tid>>10] + b2_initial[local_tid]] = e_queue[local_tid];
+        printf("I'm thread %d, my u is %d and my prefix sum is %d in round %d\n", tid, block_alloc_size[tid>>10], b2_initial[local_tid], e_queue[local_tid]);
+        v_queue[block_alloc_size[tid>>10] + b2_initial[local_tid]] = e_queue[b2_initial[local_tid]];
     }
     }
 
@@ -270,19 +268,17 @@ void runGpu(int startVertex, Graph &G) {
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
-        for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); 
+        printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (*e_queuesize)/1024 + 1;
         mem = *e_queuesize;
         mem = mem*2*sizeof(int);
         if(num_blocks==1) num_threads = *e_queuesize; else num_threads = 1024;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
-        for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); 
+        printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
     
-    printf("\n the size of the new queue is %d", *v_queuesize);
-    for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queuesize[i]); 
 
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
