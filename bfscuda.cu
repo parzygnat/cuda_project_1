@@ -70,7 +70,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < v_queuesize) {
+                if (tid + (nodeSize >> 1) < *v_queuesize) {
                     int next_position = local_tid + (nodeSize >> 1);
                     int tmp = prefixSum[local_tid];
                     prefixSum[local_tid] -= prefixSum[next_position];
@@ -97,7 +97,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                     __syncthreads();
                     if ((tid & (nodeSize - 1)) == 0) {
-                        if (tid + (nodeSize >> 1) < v_queuesize) {
+                        if (tid + (nodeSize >> 1) < *v_queuesize) {
                             int next_position = tid + (nodeSize >> 1);
                             int tmp = block_alloc_size[tid];
                             block_alloc_size[tid] -= block_alloc_size[next_position];
@@ -119,22 +119,22 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
-    __shared__ int b1_initial[*e_queuesize];
-    __shared__ int b2_initial[*e_queuesize];
+    extern __shared__ int b1_initial[];
+    extern __shared__ int b2_initial[];
 
-    if(tid < e_queuesize) {
+    if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
         if(distances[e_queue[tid]] < 0)
             b1_initial[local_tid] = 0;
         // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-        b2_initial[local_tid] = b1_initial[local_tid]
+        b2_initial[local_tid] = b1_initial[local_tid];
 
 
         for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < _initial) {
+                if (tid + (nodeSize >> 1) < *e_queuesize) {
                     int nextPosition = local_tid + (nodeSize >> 1);
                     b2_initial[local_tid] += b2_initial[nextPosition];
                 }
@@ -147,7 +147,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < _initial) {
+                if (tid + (nodeSize >> 1) < *e_queuesize) {
                     int next_position = local_tid + (nodeSize >> 1);
                     int tmp = b2_initial[local_tid];
                     b2_initial[local_tid] -= b2_initial[next_position];
@@ -177,7 +177,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                 __syncthreads();
                 if ((tid & (nodeSize - 1)) == 0) {
-                    if (tid + (nodeSize >> 1) < v_queuesize) {
+                    if (tid + (nodeSize >> 1) < *v_queuesize) {
                         int next_position = tid + (nodeSize >> 1);
                         int tmp = block_alloc_size[tid];
                         block_alloc_size[tid] -= block_alloc_size[next_position];
@@ -189,9 +189,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
     
     //now we compact
-    if(b1[local_tid])
+    if(b1_initial[local_tid])
     {
-        v_queue[block_alloc_size[tid>>10] + local_tid] = int1_initial[local_tid];
+        v_queue[block_alloc_size[tid>>10] + local_tid] = e_queue[local_tid];
     }
     }
 
@@ -209,7 +209,7 @@ void runGpu(int startVertex, Graph &G) {
     int* cvector;
     int* rvector;
     int e_queuesize;
-    int e_queuesize;
+    int v_queuesize;
     int num_vertices = G.rvector.size() - 1;
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
@@ -230,7 +230,7 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = v_queuesize/1024 + 1;
         expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         num_blocks = v_queuesize/1024 + 1;
-        contraction<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        contraction<<<num_blocks, 1024, e_queuesize, e_queuesize>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         break;
     }
 
