@@ -148,7 +148,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             *v_queuesize = block_alloc_size[block] = b2_initial[local_tid];
-            printf("\n\nv%d\n\n", *v_queuesize);
 
         }
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
@@ -180,7 +179,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             }
             if (tid == 0) {
                 *v_queuesize = block_alloc_size[tid];
-                printf("\n\nv%d\n\n", *v_queuesize);
             }
             for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                 __syncthreads();
@@ -241,7 +239,7 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
-    while(true) {
+    while(v_queuesize) {
         num_blocks = *v_queuesize/1024 + 1;
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
@@ -253,7 +251,6 @@ void runGpu(int startVertex, Graph &G) {
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
         level++;
-        break;
     }
     
     for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); 
