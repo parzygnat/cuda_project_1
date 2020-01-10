@@ -211,7 +211,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(b1_initial[local_tid])
     {
         distances[e_queue[local_tid]] = level + 1;
-        v_queue[block_alloc_size[tid>>10] + local_tid] = e_queue[local_tid];
+        v_queue[block_alloc_size[tid>>10] + b2_initial[local_tid]] = e_queue[local_tid];
     }
     }
 
