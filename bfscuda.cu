@@ -77,9 +77,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             prefixSum[n - 1] = 0;
 
         }
-        if(level==2){
-            printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
-        }
+
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
@@ -93,6 +91,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += t;
 
             }
+        }
+        if(level==2){
+            printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
         }
 
         
