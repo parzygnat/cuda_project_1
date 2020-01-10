@@ -84,7 +84,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (local_tid < d) {
+            if (local_tid < d && offset > 0) {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
 
@@ -182,7 +182,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (local_tid < d) {
+            if (local_tid < d && offset > 0) {
                 if (tid + (d >> 1) < *v_queuesize) {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
