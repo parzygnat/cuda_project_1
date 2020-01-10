@@ -235,15 +235,15 @@ void runGpu(int startVertex, Graph &G) {
     while(true) {
         num_blocks = v_queuesize/1024 + 1;
         expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
-        num_blocks = v_queuesize/1024 + 1;
+        num_blocks = e_queuesize/1024 + 1;
         mem = 2*e_queuesize*sizeof(int);
         contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         level++;
         break;
     }
     
-    for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
-    printf("the size of the new queue is %d", e_queuesize);
+    for(int i = 0; i < v_queuesize; i++) printf("%d ", v_queue[i]); 
+    printf("the size of the new queue is %d", v_queuesize);
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
