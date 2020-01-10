@@ -65,7 +65,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[local_tid];
-            printf("\n\ne1%d\n\n", e_queuesize);
+            printf("\n\ne1%d\n\n", *e_queuesize);
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -115,9 +115,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = cvector[i];
             iter++;
         }
-        printf("\n\nend of kenrel 1 %d\n\n", e_queuesize[0]);
+        
 
     }
+    printf("\n\nend of kenrel 1 %d\n\n", e_queuesize[0]);
 }
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
