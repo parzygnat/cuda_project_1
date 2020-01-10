@@ -53,7 +53,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
-        printf("I'm thread %d, and my prefix sum is %d in round %d\n", tid, prefixSum[tid], level );
+        printf("I'm thread %d, my u is %d and my prefix sum is %d in round %d\n", tid, u, prefixSum[tid], level );
         
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
