@@ -224,7 +224,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(b1_initial[local_tid])
     {
         int temp = block_alloc_size[tid>>10];
-        if (gridDim.x = 1) temp = 0;
+        if (gridDim.x == 1) temp = 0;
         distances[e_queue[local_tid]] = level + 1;
         printf("I'm thread %d, my block is %d and my value is %d in round %d\n", tid, block_alloc_size[tid>>10], b2_initial[local_tid], e_queue[local_tid]);
         v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
