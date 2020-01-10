@@ -244,12 +244,14 @@ void runGpu(int startVertex, Graph &G) {
         break;
     }
     
-    for(int i = 0; i < v_queuesize; i++) printf("%d ", v_queue[i]); 
-    printf("the size of the new queue is %d", v_queuesize);
+    for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); 
+    printf("the size of the new queue is %d", *v_queuesize);
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
+    cudaFree(v_queuesize);
+    cudaFree(e_queuesize);
     cudaFree(v_queue);
     cudaFree(e_queue);
     cudaFree(block_alloc_size);
