@@ -38,16 +38,14 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue, int *c_queuesize, int* n_queuesize, int* block_alloc_size, int* distances, int level)
+__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
-    int _initial;
     int local_tid = threadIdx.x;
     
-    if(tid < c_queuesize) {
+    if(tid < *v_queuesize) {
         __shared__ int prefixSum[1024];
-        int degree = 0;
-        int u = c_queue[tid];
+        int u = v_queue[tid];
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
         
@@ -56,7 +54,7 @@ __global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue
         for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < c_queuesize) {
+                if (tid + (nodeSize >> 1) < *v_queuesize) {
                     int nextPosition = local_tid + (nodeSize >> 1);
                     prefixSum[local_tid] += prefixSum[nextPosition];
                 }
@@ -72,7 +70,7 @@ __global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < c_queuesize) {
+                if (tid + (nodeSize >> 1) < v_queuesize) {
                     int next_position = local_tid + (nodeSize >> 1);
                     int tmp = prefixSum[local_tid];
                     prefixSum[local_tid] -= prefixSum[next_position];
@@ -94,12 +92,12 @@ __global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue
                     }
                 }
                 if (tid == 0) {
-                    *n_queuesize = block_alloc_size[tid];
+                    *e_queuesize = block_alloc_size[tid];
                 }
                 for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                     __syncthreads();
                     if ((tid & (nodeSize - 1)) == 0) {
-                        if (tid + (nodeSize >> 1) < c_queuesize) {
+                        if (tid + (nodeSize >> 1) < v_queuesize) {
                             int next_position = tid + (nodeSize >> 1);
                             int tmp = block_alloc_size[tid];
                             block_alloc_size[tid] -= block_alloc_size[next_position];
@@ -117,10 +115,9 @@ __global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue
         }
     }
 }
-__global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_queue, int *c_queuesize, int* n_queuesize, int* block_alloc_size, int* distances, int level)
+__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
-    int _initial;
     int local_tid = threadIdx.x;
     __shared__ int b1_initial[*e_queuesize];
     __shared__ int b2_initial[*e_queuesize];
@@ -180,7 +177,7 @@ __global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_que
             for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                 __syncthreads();
                 if ((tid & (nodeSize - 1)) == 0) {
-                    if (tid + (nodeSize >> 1) < c_queuesize) {
+                    if (tid + (nodeSize >> 1) < v_queuesize) {
                         int next_position = tid + (nodeSize >> 1);
                         int tmp = block_alloc_size[tid];
                         block_alloc_size[tid] -= block_alloc_size[next_position];
@@ -212,7 +209,7 @@ void runGpu(int startVertex, Graph &G) {
     int* cvector;
     int* rvector;
     int e_queuesize;
-    int n_queuesize;
+    int e_queuesize;
     int num_vertices = G.rvector.size() - 1;
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
@@ -222,29 +219,29 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&rvector, G.rvector.size()*sizeof(int));
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
-    c_queue[0] = G.root;
+    v_queue[0] = G.root;
     block_alloc_size[0] = 0;
-    c_queuesize = 1;
+    v_queuesize = 1;
     level = 0;
-    n_queuesize = 0;
+    e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
     while(true) {
-        num_blocks = c_queuesize/1024 + 1;
-        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &c_queuesize, &e_queuesize, block_alloc_size, distances, level);
-        num_blocks = c_queuesize/1024 + 1;
-        contraction<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &c_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        num_blocks = v_queuesize/1024 + 1;
+        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        num_blocks = v_queuesize/1024 + 1;
+        contraction<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         break;
     }
 
     printf("the size of the new queue is %d", e_queuesize);
-    c_queuesize = 0;
+    v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     for(int i )
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    cudaFree(c_queue);
-    cudaFree(n_queue);
+    cudaFree(v_queue);
+    cudaFree(e_queue);
     cudaFree(block_alloc_size);
     cudaFree(distances);
     cudaFree(cvector);
