@@ -119,8 +119,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
-    extern __shared__ int b1_initial[];
-    extern __shared__ int b2_initial[];
+    extern __shared__ float array[];
+    int* b1_initial = (int*)array; 
+    int* b2_initial = (int*)&array0[e_queuesize];
 
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
@@ -142,7 +143,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         if (local_tid == 0) {
             int block = tid >> 10;
-            *v_queuesize = block_alloc_size[block] = prefixSum[local_tid];
+            *v_queuesize = block_alloc_size[block] = b2_initial[local_tid];
         }
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
@@ -223,6 +224,7 @@ void runGpu(int startVertex, Graph &G) {
     block_alloc_size[0] = 0;
     v_queuesize = 1;
     level = 0;
+    int mem;
     e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
@@ -230,7 +232,8 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = v_queuesize/1024 + 1;
         expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         num_blocks = v_queuesize/1024 + 1;
-        contraction<<<num_blocks, 1024, e_queuesize, e_queuesize>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        mem = 2*e_queuesize*sizeof(int);
+        contraction<<<num_blocks, 1024, >>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         break;
     }
 
