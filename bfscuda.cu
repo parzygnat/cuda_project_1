@@ -111,7 +111,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         int iter = 0;
         for(int i = rvector[u]; i < rvector[u + 1]; i++) {
-            e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = cvector[i];
+            e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = 9;
             iter++;
         }
 
@@ -239,7 +239,6 @@ void runGpu(int startVertex, Graph &G) {
     int mem;
     *e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
-    printf("im working\n");
     while(*v_queuesize) {
         num_blocks = *v_queuesize/1024 + 1;
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
@@ -256,7 +255,7 @@ void runGpu(int startVertex, Graph &G) {
         break;
     }
     
-    printf("the size of the new queue is %d", *v_queuesize);
+    printf("\n the size of the new queue is %d", *v_queuesize);
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
