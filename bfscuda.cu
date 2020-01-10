@@ -50,7 +50,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if(*v_queuesize > 1024) {
             n = 1024;
         }
-
+        if(level==2){
+            printf("size %d tid %d val %d\n", v_queuesize, tid, v_queue[tid]);
+        }
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];        
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
@@ -282,7 +284,8 @@ void runGpu(int startVertex, Graph &G) {
         printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
-    
+    for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
+
 
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
