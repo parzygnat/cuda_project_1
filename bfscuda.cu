@@ -238,7 +238,6 @@ void runGpu(int startVertex, Graph &G) {
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    for(int i )
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     cudaFree(v_queue);
     cudaFree(e_queue);
