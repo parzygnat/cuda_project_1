@@ -151,7 +151,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         n = 1024;
     }
 
-    if(tid >= n && tid < extra) {
+    if(tid < extra) {
         b1_initial[tid] = 0;
     }
 
@@ -305,6 +305,7 @@ void runGpu(int startVertex, Graph &G) {
         extra |= extra >> 8;
         extra |= extra >> 16;
         extra++;
+        printf("extra is: %d\n", extra);
         //print newly produced edge frontier
         printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (extra)/1024 + 1;
