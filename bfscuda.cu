@@ -233,7 +233,7 @@ void runGpu(int startVertex, Graph &G) {
         expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         num_blocks = v_queuesize/1024 + 1;
         mem = 2*e_queuesize*sizeof(int);
-        contraction<<<num_blocks, 1024, >>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
         break;
     }
 
