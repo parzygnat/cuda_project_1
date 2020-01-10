@@ -276,7 +276,7 @@ void runGpu(int startVertex, Graph &G) {
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
     v_queue[0] = G.root;
-    for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
+    //for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
     block_alloc_size[0] = 0;
     *v_queuesize = 1;
     level = 0;
@@ -284,16 +284,20 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
-    while(*v_queuesize) {
+    while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+        //number of blocks scaled to the frontier size
         num_blocks = *v_queuesize/1024 + 1;
+        //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
+        //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
+        //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
+        //print newly produced edge frontier
         printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (*e_queuesize)/1024 + 1;
-        mem = *e_queuesize;
-        mem = mem*2*sizeof(int);
         if(num_blocks==1) num_threads = *e_queuesize; else num_threads = 1024;
+        mem = (*e_queuesize)*2*sizeof(int);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
         printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
