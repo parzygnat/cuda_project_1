@@ -51,31 +51,40 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
-        for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
+        int offset = 1;
+        for (int d = 1024>>1; d > 0; d >>=1) {
             __syncthreads();
-            if ((local_tid & (nodeSize - 1)) == 0) {
                 if (tid + (nodeSize >> 1) < *v_queuesize) {
-                    int nextPosition = local_tid + (nodeSize >> 1);
-                    prefixSum[local_tid] += prefixSum[nextPosition];
+                    if(local_tid < d)
+                    {
+                    int ai = offset*(2*tid+1)-1;
+                    int ai = offset*(2*tid+2)-1;
+                    prefixSum[bi] += prefixSum[ai];
+                    }
+                    offset *= 2;
                 }
-            }
+            
         }
 
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[local_tid];
+            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[1023];
+            prefixSum[1023] = 0;
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
+        for (int d = 1; d < 1024; d *= 2) {
+            offset >>= 1;
             __syncthreads();
-            if ((local_tid & (nodeSize - 1)) == 0) {
+            if (local_tid < d) {
                 if (tid + (nodeSize >> 1) < *v_queuesize) {
-                    int next_position = local_tid + (nodeSize >> 1);
-                    int tmp = prefixSum[local_tid];
-                    prefixSum[local_tid] -= prefixSum[next_position];
-                    prefixSum[next_position] = tmp;
+                    int ai = offset*(2*tid+1)-1;
+                    int ai = offset*(2*tid+2)-1;
+
+                    int t = prefixSum[ai];
+                    prefixSum[ai] = prefixSum[bi];
+                    prefixSum[bi] += t;
 
                 }
             }
