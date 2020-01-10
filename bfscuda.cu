@@ -158,7 +158,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     if(tid < extra && tid >= n) {
         b1_initial[tid] = 0;
-        e_queue[tid] = 0;
     }
 
     if(local_tid < n) {
