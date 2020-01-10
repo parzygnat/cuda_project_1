@@ -135,8 +135,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     extern __shared__ int array[];
     int* b1_initial = (int*)array; 
     int* b2_initial = b1_initial + *e_queuesize;
-    int n = *v_queuesize;
-    if(*v_queuesize > 1024) {
+    int n = *e_queuesize;
+    if(*e_queuesize > 1024) {
         n = 1024;
     }
     if(tid < *e_queuesize) {
