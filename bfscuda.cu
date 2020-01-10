@@ -240,7 +240,7 @@ void runGpu(int startVertex, Graph &G) {
         break;
     }
     
-    for(int i = 0; i < G.distances.size(); i++) printf("%d ", G.distances[i]);
+    for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
     printf("the size of the new queue is %d", e_queuesize);
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
