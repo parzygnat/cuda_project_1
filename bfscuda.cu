@@ -241,7 +241,7 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
-    while(v_queuesize) {
+    while(*v_queuesize) {
         num_blocks = *v_queuesize/1024 + 1;
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
