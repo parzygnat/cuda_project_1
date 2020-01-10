@@ -46,10 +46,16 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(tid < *v_queuesize) {
         __shared__ int prefixSum[1024];
         int u = v_queue[tid];
-        int n = 32;
-        if(*v_queuesize > 1024) {
-            n = 1024;
+        int n = *v_queuesize;
+        if(tid == 0) {
+            if(*v_queuesize > 1024) {
+                n = 1024;
+            }
+            if(!n%2)
+            n = n+1;
         }
+
+        
 
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
@@ -59,6 +65,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         int offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
+            if (tid + (nodeSize >> 1) < *v_queuesize) {
+
                     if(local_tid < d)
                     {
                     int ai = offset*(2*tid+1)-1;
@@ -66,11 +74,13 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += prefixSum[ai];
                     }
                     offset *= 2;
+                }
                 
             
         }
 
         if (local_tid == 0) {
+            if(offset == 2) offset = 4;
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[n - 1];
@@ -84,7 +94,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (local_tid < d && offset > 0) {
+            if (tid + (nodeSize >> 1) < *v_queuesize) {
+            if (local_tid < d) {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
 
@@ -93,6 +104,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += t;
 
             }
+        }
         }
         if(level==2){
             printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
@@ -106,6 +118,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             if(tid < gridDim.x) {
                 for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
                     __syncthreads();
+
                     if ((tid & (nodeSize - 1)) == 0) {
                             int nextPosition = tid + (nodeSize >> 1);
                             block_alloc_size[tid] += block_alloc_size[nextPosition];
@@ -145,7 +158,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     extern __shared__ int array[];
     int* b1_initial = (int*)array; 
     int* b2_initial = b1_initial + *e_queuesize;
-    int n = 32;
+    int n = *e_queuesize;
     if(*e_queuesize > 1024) {
         n = 1024;
     }
@@ -160,6 +173,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         int offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
+            
                     if(local_tid < d)
                     {
                     int ai = offset*(2*tid+1)-1;
