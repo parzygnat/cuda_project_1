@@ -115,10 +115,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = cvector[i];
             iter++;
         }
-        
+        printf("NUMBER OF E IN THE END IS %D\n", *e_queuesize);
 
     }
-    printf("\n\nend of kenrel 1 %d\n\n", e_queuesize[0]);
 }
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
@@ -244,7 +243,7 @@ void runGpu(int startVertex, Graph &G) {
     printf("im working\n");
     while(true) {
         num_blocks = *v_queuesize/1024 + 1;
-        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+        expansion<<<num_blocks, v_queuesize>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         num_blocks = (*e_queuesize)/1024 + 1;
         mem = *e_queuesize;
         mem = mem*2*sizeof(int);
