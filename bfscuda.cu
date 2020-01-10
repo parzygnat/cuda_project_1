@@ -244,6 +244,7 @@ void runGpu(int startVertex, Graph &G) {
     while(true) {
         num_blocks = *v_queuesize/1024 + 1;
         expansion<<<num_blocks, *v_queuesize>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+        cudaDeviceSynchronize();
         num_blocks = (*e_queuesize)/1024 + 1;
         mem = *e_queuesize;
         mem = mem*2*sizeof(int);
