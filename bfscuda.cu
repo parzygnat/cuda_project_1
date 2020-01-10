@@ -149,30 +149,40 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
         b2_initial[local_tid] = b1_initial[local_tid];
 
-
-        for (int nodeSize = 2; nodeSize <= n; nodeSize <<= 1) {
+        int offset = 1;
+        for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-            if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < *e_queuesize) {
-                    int nextPosition = local_tid + (nodeSize >> 1);
-                    b2_initial[local_tid] += b2_initial[nextPosition];
-                }
-            }
+                    if(local_tid < d)
+                    {
+                    int ai = offset*(2*tid+1)-1;
+                    int bi = offset*(2*tid+2)-1;
+                    b2_initial[bi] += b2_initial[ai];
+                    }
+                    offset *= 2;
+                
+            
         }
+
         if (local_tid == 0) {
             int block = tid >> 10;
-            *v_queuesize = block_alloc_size[block] = b2_initial[local_tid];
-            b2_initial[local_tid] = 0;
+            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+            e_queuesize[0] = block_alloc_size[block] = b2_initial[n - 1];
+            b2_initial[n - 1] = 0;
 
         }
-        for (int nodeSize = n; nodeSize > 1; nodeSize >>= 1) {
+        //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+        for (int d = 1; d < n; d *= 2) {
+            offset >>= 1;
             __syncthreads();
-            if ((local_tid & (nodeSize - 1)) == 0) {
-                if (tid + (nodeSize >> 1) < *e_queuesize) {
-                    int next_position = local_tid + (nodeSize >> 1);
-                    int tmp = b2_initial[local_tid];
-                    b2_initial[local_tid] -= b2_initial[next_position];
-                    b2_initial[next_position] = tmp;
+            if (local_tid < d) {
+                if (tid + (d >> 1) < *v_queuesize) {
+                    int ai = offset*(2*tid+1)-1;
+                    int bi = offset*(2*tid+2)-1;
+
+                    int t = prefixSum[ai];
+                    b2_initial[ai] = b2_initial[bi];
+                    b2_initial[bi] += t;
+
                 }
             }
         }
@@ -267,7 +277,7 @@ void runGpu(int startVertex, Graph &G) {
         if(num_blocks==1) num_threads = *e_queuesize; else num_threads = 1024;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
-        for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]); 
+        for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); 
         level++;
     }
     
