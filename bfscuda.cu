@@ -154,6 +154,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(*e_queuesize > 1024) {
         n = 1024;
     }
+    if((n & 1)==1) {
+        n = n+1;
+        prefixSum[n-1] = 0;
+       }
+
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
@@ -281,7 +286,7 @@ void runGpu(int startVertex, Graph &G) {
     int mem;
     *e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
-    while(level < 3) {
+    while(level < 7) {
         num_blocks = *v_queuesize/1024 + 1;
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
