@@ -53,6 +53,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
+        printf("I'm thread %d, and my prefix sum is %d in round %d\n", tid, prefixSum[tid], level );
         
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
@@ -139,7 +140,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(*e_queuesize > 1024) {
         n = 1024;
     }
-    printf("queuesize is %d\n", *e_queuesize);
+    printf("E queuesize is %d\n", *e_queuesize);
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
