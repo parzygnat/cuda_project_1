@@ -40,6 +40,8 @@ void runCpu(int startVertex, Graph &G) {
 
 __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
+    printf("yea you do\n\n");
+
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     
