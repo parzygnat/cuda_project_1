@@ -53,9 +53,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
-        if(level==2){
-            printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
-        }   
+ 
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
         int offset = 1;
@@ -95,6 +93,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 }
             }
         }
+        if(level==2){
+            printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
+        }  
         //scan on offsets produced by blocks in total
         if(gridDim.x > 1) {
             if(tid < gridDim.x) {
