@@ -246,7 +246,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         int temp = block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[e_queue[local_tid]] = level + 1;
-        printf("im thread %d and my number is %d and my index is %d\n", tid, e_queue[local_tid], b2_initial[local_tid]);
         v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
     }
     }
@@ -319,7 +318,6 @@ void runGpu(int startVertex, Graph &G) {
         extra |= extra >> 8;
         extra |= extra >> 16;
         extra++;
-        printf("extra is: %d\n", extra);
         //print newly produced edge frontier
         printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (extra)/1024 + 1;
