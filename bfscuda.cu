@@ -245,6 +245,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
 
 void runGpu(int startVertex, Graph &G) {
+    //declarations 
     G.root = startVertex;
     int level = 0;
     int num_blocks;
@@ -258,12 +259,16 @@ void runGpu(int startVertex, Graph &G) {
     int *e_queuesize;
     int *v_queuesize;
     int num_vertices = G.rvector.size() - 1;
+
+    //cuda unified memory allocations
     cudaMallocManaged(&e_queuesize, sizeof(int));
     cudaMallocManaged(&v_queuesize, sizeof(int));
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
+    
+    //initializations 
     memset(distances, -1, num_vertices*sizeof(int));
     distances[G.root] = 0; 
     cudaMallocManaged(&cvector, G.cvector.size()*sizeof(int));
@@ -272,34 +277,31 @@ void runGpu(int startVertex, Graph &G) {
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
     v_queue[0] = G.root;
     for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
-    printf("Starting cuda  bfs.\n\n\n");
     block_alloc_size[0] = 0;
     *v_queuesize = 1;
     level = 0;
     int mem;
     *e_queuesize = 0;
+    printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
     while(*v_queuesize) {
         num_blocks = *v_queuesize/1024 + 1;
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
-        //printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
+        printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (*e_queuesize)/1024 + 1;
         mem = *e_queuesize;
         mem = mem*2*sizeof(int);
         if(num_blocks==1) num_threads = *e_queuesize; else num_threads = 1024;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
-        //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
+        printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
-    for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
-
-
-    v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
+    for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
