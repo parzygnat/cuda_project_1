@@ -64,7 +64,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            *e_queuesize = block_alloc_size[block + 1] = prefixSum[local_tid];
+            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[local_tid];
             printf("\n\ne1%d\n\n", *e_queuesize);
 
         }
