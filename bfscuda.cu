@@ -65,7 +65,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[local_tid];
-            printf("\n\ne1%d\n\n", *e_queuesize);
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -115,12 +114,12 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = cvector[i];
             iter++;
         }
-        printf("NUMBER OF E IN THE END IS %d\n", *e_queuesize);
 
     }
 }
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
+    printf("do i work at all?\n\n")
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     //question - REMEMBERs
@@ -212,6 +211,7 @@ void runGpu(int startVertex, Graph &G) {
     printf("Starting cuda  bfs.\n\n\n");
     int level = 0;
     int num_blocks;
+    int num_threads;
     int* v_queue;
     int* e_queue;
     int* block_alloc_size;
@@ -243,13 +243,14 @@ void runGpu(int startVertex, Graph &G) {
     printf("im working\n");
     while(true) {
         num_blocks = *v_queuesize/1024 + 1;
-        expansion<<<num_blocks, *v_queuesize>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+        if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
+        expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
         num_blocks = (*e_queuesize)/1024 + 1;
         mem = *e_queuesize;
         mem = mem*2*sizeof(int);
-        printf("the new queue size is %d\n", *e_queuesize);
-        contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+        if(num_blocks==1) num_threads = *e_queuesize; else num_threads = 1024;
+        contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
         level++;
         break;
