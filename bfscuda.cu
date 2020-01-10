@@ -120,9 +120,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     //question - REMEMBERs
-    extern __shared__ int array[];
-    int* b1_initial = (int*)array; 
-    int* b2_initial = b1_initial + e_queuesize;
+    extern __shared__ int b1_initial[];
 
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
@@ -130,7 +128,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(distances[e_queue[tid]] < 0)
             b1_initial[local_tid] = 0;
         // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-        b2_initial[local_tid] = b1_initial[local_tid];
+        b1_initial[local_tid + e_queuesize] = b1_initial[local_tid];
 
 
         for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
@@ -138,22 +136,22 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             if ((local_tid & (nodeSize - 1)) == 0) {
                 if (tid + (nodeSize >> 1) < *e_queuesize) {
                     int nextPosition = local_tid + (nodeSize >> 1);
-                    b2_initial[local_tid] += b2_initial[nextPosition];
+                    b1_initial[local_tid + e_queuesize] += b1_initial[nextPosition + e_queuesize];
                 }
             }
         }
         if (local_tid == 0) {
             int block = tid >> 10;
-            *v_queuesize = block_alloc_size[block] = b2_initial[local_tid];
+            *v_queuesize = block_alloc_size[block] = b1_initial[local_tid + e_queuesize];
         }
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
                 if (tid + (nodeSize >> 1) < *e_queuesize) {
                     int next_position = local_tid + (nodeSize >> 1);
-                    int tmp = b2_initial[local_tid];
-                    b2_initial[local_tid] -= b2_initial[next_position];
-                    b2_initial[next_position] = tmp;
+                    int tmp = b1_initial[local_tid + e_queuesize];
+                    b1_initial[local_tid + e_queuesize] -= b1_initial[next_position + e_queuesize];
+                    b1_initial[next_position + e_queuesize] = tmp;
                 }
             }
         }
