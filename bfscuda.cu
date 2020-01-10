@@ -297,7 +297,7 @@ void runGpu(int startVertex, Graph &G) {
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
-        extra = e_queuesize;
+        extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
         extra |= extra >> 2;
