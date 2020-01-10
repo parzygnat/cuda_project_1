@@ -265,6 +265,7 @@ void runGpu(int startVertex, Graph &G) {
         if(num_blocks==1) num_threads = *e_queuesize; else num_threads = 1024;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         cudaDeviceSynchronize();
+        for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]); 
         level++;
         break;
     }
