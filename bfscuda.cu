@@ -148,7 +148,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             *v_queuesize = block_alloc_size[block] = b2_initial[local_tid];
-            printf("\n\n%d\n\n", *e_queuesize);
+            printf("\n\n%d\n\n", *v_queuesize);
 
         }
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
@@ -180,7 +180,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             }
             if (tid == 0) {
                 *v_queuesize = block_alloc_size[tid];
-                printf("\n\n%d\n\n", *e_queuesize);
+                printf("\n\n%d\n\n", *v_queuesize);
             }
             for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                 __syncthreads();
