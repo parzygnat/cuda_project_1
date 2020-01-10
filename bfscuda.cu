@@ -44,17 +44,22 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int local_tid = threadIdx.x;
     
     if(tid < *v_queuesize) {
+        __shared__ int n = *v_queuesize;
         __shared__ int prefixSum[1024];
         int u = v_queue[tid];
+        
+        if(*v_queuesize > 1024) {
+            n = 1024;
+        }
+
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
         
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
         int offset = 1;
-        for (int d = 1024>>1; d > 0; d >>=1) {
+        for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-                if (tid + (d >> 1) < *v_queuesize) {
                     if(local_tid < d)
                     {
                     int ai = offset*(2*tid+1)-1;
@@ -62,19 +67,19 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += prefixSum[ai];
                     }
                     offset *= 2;
-                }
+                
             
         }
 
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[1023];
-            prefixSum[1023] = 0;
+            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[n - 1];
+            prefixSum[n - 1] = 0;
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < 1024; d *= 2) {
+        for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
@@ -115,7 +120,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 }
             }
         }
-
         int iter = 0;
         for(int i = rvector[u]; i < rvector[u + 1]; i++) {
             printf("im rep %d, prefix sum is %d, block alloc is %d, and iter is %d \n", i, prefixSum[tid], block_alloc_size[tid>>10], iter);
