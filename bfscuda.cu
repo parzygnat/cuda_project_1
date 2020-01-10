@@ -179,7 +179,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
 
-                    int t = prefixSum[ai];
+                    int t = b2_initial[ai];
                     b2_initial[ai] = b2_initial[bi];
                     b2_initial[bi] += t;
 
