@@ -231,16 +231,16 @@ void runGpu(int startVertex, Graph &G) {
     *v_queuesize = 1;
     level = 0;
     int mem;
-    e_queuesize = 0;
+    *e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
     while(true) {
         num_blocks = *v_queuesize/1024 + 1;
         expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
-        // num_blocks = (*e_queuesize)/1024 + 1;
-        // mem = *e_queuesize;
-        // mem = mem*2*sizeof(int);
-        // contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+        num_blocks = (*e_queuesize)/1024 + 1;
+        mem = *e_queuesize;
+        mem = mem*2*sizeof(int);
+        contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         level++;
         break;
     }
