@@ -65,7 +65,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         int offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-            if (tid + (nodeSize >> 1) < *v_queuesize) {
+            if (tid + (d >> 1) < *v_queuesize) {
 
                     if(local_tid < d)
                     {
