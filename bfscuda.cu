@@ -155,7 +155,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         b1_initial[tid] = 0;
     }
 
-`   if(local_tid < n) {
+    if(local_tid < n) {
         b1_initial[local_tid] = 1;
         if(distances[e_queue[tid]] >= 0)
             b1_initial[local_tid] = 0;
