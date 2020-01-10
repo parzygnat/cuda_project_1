@@ -115,7 +115,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = cvector[i];
             iter++;
         }
-        printf("NUMBER OF E IN THE END IS %D\n", *e_queuesize);
+        printf("NUMBER OF E IN THE END IS %d\n", *e_queuesize);
 
     }
 }
