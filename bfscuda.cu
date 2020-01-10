@@ -112,7 +112,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         int iter = 0;
         for(int i = rvector[u]; i < rvector[u + 1]; i++) {
             printf("im rep %d \n", i);
-            e_queue[iter + prefixSum[tid] + block_alloc_size[tid>>10]] = cvector[i];
+            e_queue[i] = cvector[i];
             iter++;
         }
 
