@@ -119,7 +119,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
-    extern __shared__ float array[];
+    //question - REMEMBERs
+    extern __shared__ int array[];
     int* b1_initial = (int*)array; 
     int* b2_initial = (int*)b1_initial + e_queuesize;
 
