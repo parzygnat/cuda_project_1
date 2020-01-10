@@ -250,6 +250,7 @@ void runGpu(int startVertex, Graph &G) {
         mem = mem*2*sizeof(int);
         printf("the new queue size is %d\n", *e_queuesize);
         contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+        cudaDeviceSynchronize();
         level++;
         break;
     }
