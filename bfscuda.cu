@@ -218,7 +218,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
-    memset(distances, -1, num_vertices*sizeof(int)); 
+    memset(distances, -1, num_vertices*sizeof(int));
+    distances[G.root] = 0; 
     cudaMallocManaged(&cvector, G.cvector.size()*sizeof(int));
     cudaMallocManaged(&rvector, G.rvector.size()*sizeof(int));
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
