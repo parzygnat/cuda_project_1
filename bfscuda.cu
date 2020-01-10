@@ -121,7 +121,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int local_tid = threadIdx.x;
     extern __shared__ float array[];
     int* b1_initial = (int*)array; 
-    int* b2_initial = b1_initial + e_queuesize;
+    int* b2_initial = (int*)b1_initial + e_queuesize;
 
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
