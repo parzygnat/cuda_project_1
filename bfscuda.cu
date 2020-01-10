@@ -124,6 +124,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             e_queue[iter + prefixSum[local_tid] + block_alloc_size[tid>>10]] = cvector[i];
             iter++;
         }
+        printf("hey im e %d\n", %e_queuesize)
 
     }
 }
