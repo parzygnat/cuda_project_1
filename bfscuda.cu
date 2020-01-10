@@ -139,6 +139,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(*e_queuesize > 1024) {
         n = 1024;
     }
+    printf("queuesize is %d\n", *e_queuesize);
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
