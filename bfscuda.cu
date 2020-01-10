@@ -50,7 +50,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if(*v_queuesize > 1024) {
             n = 1024;
         }
-        if((n & 1)==1) {
+        if((n % 2)==1) {
          n = n+1;
          prefixSum[n] = 0;
         }
