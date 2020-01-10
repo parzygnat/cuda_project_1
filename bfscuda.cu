@@ -44,7 +44,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int local_tid = threadIdx.x;
     
     if(tid < *v_queuesize) {
-        __shared__ int n = *v_queuesize;
+        int n = *v_queuesize;
         __shared__ int prefixSum[1024];
         int u = v_queue[tid];
         
