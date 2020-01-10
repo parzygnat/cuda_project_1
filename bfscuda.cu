@@ -211,9 +211,11 @@ void runGpu(int startVertex, Graph &G) {
     int* distances;
     int* cvector;
     int* rvector;
-    int e_queuesize;
-    int v_queuesize;
+    int *e_queuesize;
+    int *v_queuesize;
     int num_vertices = G.rvector.size() - 1;
+    cudaMallocManaged(&e_queuesize, sizeof(int));
+    cudaMallocManaged(&v_queuesize, sizeof(int));
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
@@ -234,10 +236,10 @@ void runGpu(int startVertex, Graph &G) {
     printf("im working\n");
     while(true) {
         num_blocks = v_queuesize/1024 + 1;
-        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         num_blocks = e_queuesize/1024 + 1;
         mem = 2*e_queuesize*sizeof(int);
-        contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
         level++;
         break;
     }
