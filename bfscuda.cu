@@ -44,10 +44,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int local_tid = threadIdx.x;
     
     if(tid < *v_queuesize) {
-        int n = *v_queuesize;
         __shared__ int prefixSum[1024];
         int u = v_queue[tid];
-        
+        int n = *v_queuesize;
         if(*v_queuesize > 1024) {
             n = 1024;
         }
@@ -122,11 +121,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
         int iter = 0;
         for(int i = rvector[u]; i < rvector[u + 1]; i++) {
-            printf("im rep %d, prefix sum is %d, block alloc is %d, and iter is %d \n", i, prefixSum[tid], block_alloc_size[tid>>10], iter);
             e_queue[iter + prefixSum[local_tid] + block_alloc_size[tid>>10]] = cvector[i];
             iter++;
         }
-        printf("hey im e %d\n", *e_queuesize);
 
     }
 }
@@ -138,7 +135,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     extern __shared__ int array[];
     int* b1_initial = (int*)array; 
     int* b2_initial = b1_initial + *e_queuesize;
-
+    int n = *v_queuesize;
+    if(*v_queuesize > 1024) {
+        n = 1024;
+    }
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
@@ -148,7 +148,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         b2_initial[local_tid] = b1_initial[local_tid];
 
 
-        for (int nodeSize = 2; nodeSize <= 1024; nodeSize <<= 1) {
+        for (int nodeSize = 2; nodeSize <= n; nodeSize <<= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
                 if (tid + (nodeSize >> 1) < *e_queuesize) {
@@ -160,9 +160,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             *v_queuesize = block_alloc_size[block] = b2_initial[local_tid];
+            b2_initial[local_tid] = 0;
 
         }
-        for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
+        for (int nodeSize = n; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
             if ((local_tid & (nodeSize - 1)) == 0) {
                 if (tid + (nodeSize >> 1) < *e_queuesize) {
