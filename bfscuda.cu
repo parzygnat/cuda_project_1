@@ -63,7 +63,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         int offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-            if (tid + (d >> 1) < *v_queuesize) {
 
                     if(local_tid < d)
                     {
@@ -72,7 +71,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += prefixSum[ai];
                     }
                     offset *= 2;
-                }
+                
                 
             
         }
@@ -92,7 +91,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (tid + (d >> 1) < *v_queuesize) {
             if (local_tid < d) {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
@@ -102,7 +100,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += t;
 
             }
-        }
+        
         }
         if(level==2){
             printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
