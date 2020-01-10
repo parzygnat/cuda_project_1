@@ -80,10 +80,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
+            *v_queuesize = 0;
 
-        }
-        if(level==2){
-            printf("tid %d prefix %d val %d offset %d\n", tid, prefixSum[tid], v_queue[local_tid], offset);
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
@@ -98,9 +96,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += t;
 
             }
-        }
-        if(level==2){
-            printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
         }
 
         
@@ -144,6 +139,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 }
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
 {
+
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     //question - REMEMBERs
@@ -243,7 +239,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         int temp = block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[e_queue[local_tid]] = level + 1;
-        printf("I'm thread %d, my block is %d and my value is %d in round %d\n", tid, block_alloc_size[tid>>10], b2_initial[local_tid], e_queue[local_tid]);
         v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
     }
     }
