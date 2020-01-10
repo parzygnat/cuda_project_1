@@ -193,6 +193,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //now we compact
     if(b1_initial[local_tid])
     {
+        distances[e_queue[local_tid]] = level + 1;
         v_queue[block_alloc_size[tid>>10] + local_tid] = e_queue[local_tid];
     }
     }
@@ -235,9 +236,11 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = v_queuesize/1024 + 1;
         mem = 2*e_queuesize*sizeof(int);
         contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, &v_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        level++;
         break;
     }
-
+    
+    for(int i = 0; i < G.distances.size(); i++) printf("%d ", G.distances[i]);
     printf("the size of the new queue is %d", e_queuesize);
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
