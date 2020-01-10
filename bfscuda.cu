@@ -94,7 +94,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (tid + (nodeSize >> 1) < *v_queuesize) {
+            if (tid + (d >> 1) < *v_queuesize) {
             if (local_tid < d) {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
@@ -116,11 +116,11 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         //scan on offsets produced by blocks in total
         if(gridDim.x > 1) {
             if(tid < gridDim.x) {
-                for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
+                for (int d = 2; d <= gridDim.x; d <<= 1) {
                     __syncthreads();
 
-                    if ((tid & (nodeSize - 1)) == 0) {
-                            int nextPosition = tid + (nodeSize >> 1);
+                    if ((tid & (d - 1)) == 0) {
+                            int nextPosition = tid + (d >> 1);
                             block_alloc_size[tid] += block_alloc_size[nextPosition];
                         }
                     
@@ -128,10 +128,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 if (tid == 0) {
                     *e_queuesize = block_alloc_size[tid];
                 }
-                for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
+                for (int d = 1024; d > 1; d >>= 1) {
                     __syncthreads();
-                    if ((tid & (nodeSize - 1)) == 0) {
-                            int next_position = tid + (nodeSize >> 1);
+                    if ((tid & (d - 1)) == 0) {
+                            int next_position = tid + (d >> 1);
                             int tmp = block_alloc_size[tid];
                             block_alloc_size[tid] -= block_alloc_size[next_position];
                             block_alloc_size[next_position] = tmp;
@@ -215,11 +215,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //scan on offsets produced by blocks in total
     if(gridDim.x > 1) {
         if(tid < gridDim.x) {
-            for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
+            for (int d = 2; d <= gridDim.x; d <<= 1) {
                 __syncthreads();
-                if ((tid & (nodeSize - 1)) == 0) {
-                    if (tid + (nodeSize >> 1) < gridDim.x) {
-                        int nextPosition = tid + (nodeSize >> 1);
+                if ((tid & (d - 1)) == 0) {
+                    if (tid + (d >> 1) < gridDim.x) {
+                        int nextPosition = tid + (d >> 1);
                         block_alloc_size[tid] += block_alloc_size[nextPosition];
                     }
                 }
@@ -227,11 +227,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             if (tid == 0) {
                 *v_queuesize = block_alloc_size[tid];
             }
-            for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
+            for (int d = 1024; d > 1; d >>= 1) {
                 __syncthreads();
-                if ((tid & (nodeSize - 1)) == 0) {
-                    if (tid + (nodeSize >> 1) < *v_queuesize) {
-                        int next_position = tid + (nodeSize >> 1);
+                if ((tid & (d - 1)) == 0) {
+                    if (tid + (d >> 1) < *v_queuesize) {
+                        int next_position = tid + (d >> 1);
                         int tmp = block_alloc_size[tid];
                         block_alloc_size[tid] -= block_alloc_size[next_position];
                         block_alloc_size[next_position] = tmp;
