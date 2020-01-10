@@ -271,7 +271,7 @@ void runGpu(int startVertex, Graph &G) {
     }
     
     printf("\n the size of the new queue is %d", *v_queuesize);
-    for(int i = 0; i < v_queuesize; i++) printf("%d ", v_queuesize[i]); 
+    for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queuesize[i]); 
 
     v_queuesize = 0;
     auto end = std::chrono::system_clock::now();
