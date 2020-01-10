@@ -240,7 +240,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //now we compact
     if(b1_initial[local_tid])
     {
-        printf("im thread %d \n and my number is %d\n", tid, e_queue[local_tid]);
+        printf("im thread %d \n and my number is %d\n and my index is %d\n", tid, e_queue[local_tid], temp + b2_initial[local_tid]);
         int temp = block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[e_queue[local_tid]] = level + 1;
