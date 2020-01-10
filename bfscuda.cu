@@ -51,7 +51,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             n = 1024;
         }
         if(level==2){
-            printf("size %d tid %d val %d\n", v_queuesize, tid, v_queue[tid]);
+            printf("size %d tid %d val %d\n", *v_queuesize, tid, v_queue[local_tid]);
         }
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];        
