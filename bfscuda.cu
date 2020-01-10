@@ -119,8 +119,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
         int iter = 0;
+        int temp = block_alloc_size[tid>>10];
+        if (Grid.x = 1) temp = 0;
         for(int i = rvector[u]; i < rvector[u + 1]; i++) {
-            e_queue[iter + prefixSum[local_tid]] = cvector[i];
+            e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
             iter++;
         }
 
@@ -219,9 +221,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //now we compact
     if(b1_initial[local_tid])
     {
+        int temp = block_alloc_size[tid>>10];
+        if (Grid.x = 1) temp = 0;
         distances[e_queue[local_tid]] = level + 1;
         printf("I'm thread %d, my block is %d and my value is %d in round %d\n", tid, block_alloc_size[tid>>10], b2_initial[local_tid], e_queue[local_tid]);
-        v_queue[b2_initial[local_tid]] = e_queue[local_tid];
+        v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
     }
     }
 
