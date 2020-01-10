@@ -42,11 +42,12 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
+    __shared__ int prefixSum[1024];
+    int u = v_queue[tid];
+    int n = *v_queuesize;
     
     if(tid < extra) {
-        __shared__ int prefixSum[1024];
-        int u = v_queue[tid];
-        int n = *v_queuesize;
+
         if(*v_queuesize > 1024) {
             n = 1024;
         }
