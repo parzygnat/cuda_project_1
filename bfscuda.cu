@@ -47,13 +47,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         __shared__ int prefixSum[1024];
         int u = v_queue[tid];
         int n = *v_queuesize;
-        if(tid == 0) {
-            if(*v_queuesize > 1024) {
-                n = 1024;
-            }
+        if(*v_queuesize > 1024) {
+            n = 1024;
         }
-
-        
 
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
@@ -63,7 +59,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         int offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-
                     if(local_tid < d)
                     {
                     int ai = offset*(2*tid+1)-1;
@@ -72,12 +67,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     }
                     offset *= 2;
                 
-                
             
         }
 
         if (local_tid == 0) {
-            if(offset == 2) offset = 4;
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[n - 1];
@@ -100,7 +93,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     prefixSum[bi] += t;
 
             }
-        
         }
         if(level==2){
             printf("tid %d prefix %d val %d\n", tid, prefixSum[tid], v_queue[local_tid]);
@@ -112,11 +104,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         //scan on offsets produced by blocks in total
         if(gridDim.x > 1) {
             if(tid < gridDim.x) {
-                for (int d = 2; d <= gridDim.x; d <<= 1) {
+                for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
                     __syncthreads();
-
-                    if ((tid & (d - 1)) == 0) {
-                            int nextPosition = tid + (d >> 1);
+                    if ((tid & (nodeSize - 1)) == 0) {
+                            int nextPosition = tid + (nodeSize >> 1);
                             block_alloc_size[tid] += block_alloc_size[nextPosition];
                         }
                     
@@ -124,10 +115,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 if (tid == 0) {
                     *e_queuesize = block_alloc_size[tid];
                 }
-                for (int d = 1024; d > 1; d >>= 1) {
+                for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                     __syncthreads();
-                    if ((tid & (d - 1)) == 0) {
-                            int next_position = tid + (d >> 1);
+                    if ((tid & (nodeSize - 1)) == 0) {
+                            int next_position = tid + (nodeSize >> 1);
                             int tmp = block_alloc_size[tid];
                             block_alloc_size[tid] -= block_alloc_size[next_position];
                             block_alloc_size[next_position] = tmp;
@@ -169,7 +160,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         int offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-            
                     if(local_tid < d)
                     {
                     int ai = offset*(2*tid+1)-1;
@@ -192,7 +182,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (local_tid < d && offset > 0) {
+            if (local_tid < d) {
                 if (tid + (d >> 1) < *v_queuesize) {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
@@ -211,11 +201,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //scan on offsets produced by blocks in total
     if(gridDim.x > 1) {
         if(tid < gridDim.x) {
-            for (int d = 2; d <= gridDim.x; d <<= 1) {
+            for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
                 __syncthreads();
-                if ((tid & (d - 1)) == 0) {
-                    if (tid + (d >> 1) < gridDim.x) {
-                        int nextPosition = tid + (d >> 1);
+                if ((tid & (nodeSize - 1)) == 0) {
+                    if (tid + (nodeSize >> 1) < gridDim.x) {
+                        int nextPosition = tid + (nodeSize >> 1);
                         block_alloc_size[tid] += block_alloc_size[nextPosition];
                     }
                 }
@@ -223,11 +213,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             if (tid == 0) {
                 *v_queuesize = block_alloc_size[tid];
             }
-            for (int d = 1024; d > 1; d >>= 1) {
+            for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                 __syncthreads();
-                if ((tid & (d - 1)) == 0) {
-                    if (tid + (d >> 1) < *v_queuesize) {
-                        int next_position = tid + (d >> 1);
+                if ((tid & (nodeSize - 1)) == 0) {
+                    if (tid + (nodeSize >> 1) < *v_queuesize) {
+                        int next_position = tid + (nodeSize >> 1);
                         int tmp = block_alloc_size[tid];
                         block_alloc_size[tid] -= block_alloc_size[next_position];
                         block_alloc_size[next_position] = tmp;
@@ -286,7 +276,7 @@ void runGpu(int startVertex, Graph &G) {
     int mem;
     *e_queuesize = 0;
     auto start = std::chrono::system_clock::now();
-    while(level < 10) {
+    while(level < 3) {
         num_blocks = *v_queuesize/1024 + 1;
         if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
