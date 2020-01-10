@@ -142,7 +142,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < *e_queuesize) {
         // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
         b1_initial[local_tid] = 1;
-        if(distances[e_queue[tid]] < 0)
+        if(distances[e_queue[tid]] >= 0)
             b1_initial[local_tid] = 0;
         // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
         b2_initial[local_tid] = b1_initial[local_tid];
