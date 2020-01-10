@@ -271,9 +271,7 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&cvector, G.cvector.size()*sizeof(int));
     cudaMallocManaged(&rvector, G.rvector.size()*sizeof(int));
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
-    for(int i = 0; i < G.cvector.size(); i++) printf("C: %d \n", cvector[i]); 
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
-    for(int i = 0; i <  G.rvector.size(); i++) printf("R: %d \n", rvector[i]); 
     v_queue[0] = G.root;
     block_alloc_size[0] = 0;
     *v_queuesize = 1;
