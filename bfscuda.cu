@@ -156,7 +156,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
     if((n & 1)==1) {
         n = n+1;
-        prefixSum[n-1] = 0;
+        b2_initial[n-1] = 0;
        }
 
     if(tid < *e_queuesize) {
