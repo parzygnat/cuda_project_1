@@ -38,7 +38,7 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int* n_queuesize, int* block_alloc_size, int* distances, int level)
+__global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue, int *c_queuesize, int* n_queuesize, int* block_alloc_size, int* distances, int level)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int _initial;
@@ -66,7 +66,7 @@ __global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize = block_alloc_size[block + 1] = prefixSum[local_tid];
+            *e_queuesize = block_alloc_size[block + 1] = prefixSum[local_tid];
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
@@ -117,16 +117,20 @@ __global__ void expansion(int* cvector, int* rvector, int* c_queue, int* n_queue
         }
     }
 }
-__global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_queue, int c_queuesize, int* n_queuesize, int* block_alloc_size, int* distances, int level)
+__global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_queue, int *c_queuesize, int* n_queuesize, int* block_alloc_size, int* distances, int level)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int _initial;
     int local_tid = threadIdx.x;
+    __shared__ int b1_initial[*e_queuesize];
+    __shared__ int b2_initial[*e_queuesize];
 
     if(tid < e_queuesize) {
-        b_initial[local_tid] = 1;
-        if(distances[int_initial[local_tid]] < 0)
+        // we create a array of 0s and 1s signifying whether vertices in the edge frontier have already been visited
+        b1_initial[local_tid] = 1;
+        if(distances[e_queue[tid]] < 0)
             b1_initial[local_tid] = 0;
+        // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
         b2_initial[local_tid] = b1_initial[local_tid]
 
 
@@ -141,7 +145,7 @@ __global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_que
         }
         if (local_tid == 0) {
             int block = tid >> 10;
-            _initial = block_alloc_size[block] = prefixSum[local_tid];
+            *v_queuesize = block_alloc_size[block] = prefixSum[local_tid];
         }
         for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
             __syncthreads();
@@ -155,7 +159,10 @@ __global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_que
             }
         }
         __syncthreads();
+        // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
+
+    //scan on offsets produced by blocks in total
     if(gridDim.x > 1) {
         if(tid < gridDim.x) {
             for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
@@ -168,7 +175,7 @@ __global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_que
                 }
             }
             if (tid == 0) {
-                *n_queuesize = block_alloc_size[tid];
+                *v_queuesize = block_alloc_size[tid];
             }
             for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                 __syncthreads();
@@ -184,9 +191,10 @@ __global__ void contraction(int* cvector, int* rvector, int* c_queue, int* n_que
         }
     }
     
-    if(tid < *n_queuesize)
+    //now we compact
+    if(b1[local_tid])
     {
-        n_queue[block_alloc_size[tid>>10] + local_tid] = int1_initial[local_tid];
+        v_queue[block_alloc_size[tid>>10] + local_tid] = int1_initial[local_tid];
     }
     }
 
@@ -221,11 +229,15 @@ void runGpu(int startVertex, Graph &G) {
     n_queuesize = 0;
     auto start = std::chrono::system_clock::now();
     printf("im working\n");
-    num_blocks = c_queuesize/1024 + 1;
-    expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, c_queuesize, &e_queuesize, block_alloc_size, distances, level);
-    contraction<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, c_queuesize, &e_queuesize, block_alloc_size, distances, level);
+    while(true) {
+        num_blocks = c_queuesize/1024 + 1;
+        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &c_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        num_blocks = c_queuesize/1024 + 1;
+        contraction<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, &c_queuesize, &e_queuesize, block_alloc_size, distances, level);
+        break;
+    }
 
-    printf("the size of the new queue is %d", n_queuesize);
+    printf("the size of the new queue is %d", e_queuesize);
     c_queuesize = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
