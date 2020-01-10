@@ -52,7 +52,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
         if((n & 1)==1) {
          n = n+1;
-         prefixSum[n+1] = 0;
+         prefixSum[n] = 0;
         }
 
 
