@@ -95,11 +95,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
                     __syncthreads();
                     if ((tid & (nodeSize - 1)) == 0) {
-                        if (tid + (nodeSize >> 1) < gridDim.x) {
                             int nextPosition = tid + (nodeSize >> 1);
                             block_alloc_size[tid] += block_alloc_size[nextPosition];
                         }
-                    }
+                    
                 }
                 if (tid == 0) {
                     *e_queuesize = block_alloc_size[tid];
@@ -107,13 +106,12 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
                     __syncthreads();
                     if ((tid & (nodeSize - 1)) == 0) {
-                        if (tid + (nodeSize >> 1) < *v_queuesize) {
                             int next_position = tid + (nodeSize >> 1);
                             int tmp = block_alloc_size[tid];
                             block_alloc_size[tid] -= block_alloc_size[next_position];
                             block_alloc_size[next_position] = tmp;
                         }
-                    }
+                    
                 }
             }
         }
