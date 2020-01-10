@@ -38,31 +38,36 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level)
+__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level, int extra)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     
-    if(tid < *v_queuesize) {
+    if(tid < extra) {
         __shared__ int prefixSum[1024];
         int u = v_queue[tid];
         int n = *v_queuesize;
         if(*v_queuesize > 1024) {
             n = 1024;
         }
-        if((n & 1)==1) {
-         n = n+1;
-         prefixSum[n-1] = 0;
+    }
+    
+        if(tid < extra && tid >= n) {
+            prefixSum[tid] = 0;
         }
+    
 
-
+        if(tid < n) {
         //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[tid] = rvector[u + 1] - rvector[u];
- 
+        
+        }
+        
+        if(tid < extra) {
         //1s of 3 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
         // blelloch exclusive scan algorithm with upsweep to the left
         int offset = 1;
-        for (int d = n>>1; d > 0; d >>=1) {
+        for (int d = extra>>1; d > 0; d >>=1) {
             __syncthreads();
                     if(local_tid < d)
                     {
@@ -78,13 +83,13 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[n - 1];
-            prefixSum[n - 1] = 0;
+            e_queuesize[0] = block_alloc_size[block + 1] = prefixSum[extra - 1];
+            prefixSum[extra - 1] = 0;
             *v_queuesize = 0;
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < n; d *= 2) {
+        for (int d = 1; d < extra; d *= 2) {
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
@@ -142,7 +147,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
-    //question - REMEMBERs
     extern __shared__ int array[];
     int* b1_initial = (int*)array; 
     int* b2_initial = b1_initial + *e_queuesize;
@@ -290,13 +294,22 @@ void runGpu(int startVertex, Graph &G) {
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
     while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+        extra = *v_queuesize;
+        extra--;
+        extra |= extra >> 1;
+        extra |= extra >> 2;
+        extra |= extra >> 4;
+        extra |= extra >> 8;
+        extra |= extra >> 16;
+        extra++;
         //number of blocks scaled to the frontier size
-        num_blocks = *v_queuesize/1024 + 1;
+        num_blocks = extra/1024 + 1;
         //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
-        if(num_blocks==1) num_threads = *v_queuesize; else num_threads = 1024;
+        if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
-        expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level);
+
+        expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
         extra = *e_queuesize;
         extra--;
