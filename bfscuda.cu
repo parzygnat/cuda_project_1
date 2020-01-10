@@ -166,7 +166,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = block_alloc_size[block] = b2_initial[n - 1];
+            v_queuesize[0] = block_alloc_size[block] = b2_initial[n - 1];
             b2_initial[n - 1] = 0;
 
         }
