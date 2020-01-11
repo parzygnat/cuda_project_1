@@ -255,9 +255,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             }
 
-            printf("i work8");
-            return;
-            
             if (tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
                 v_queuesize[0] = v_block_alloc_size[n - 1];
@@ -265,6 +262,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 *e_queuesize = 0;
     
             }
+
+            printf("i work8");
+            return;
 
             //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
             for (int d = 1; d < gridDim.x; d *= 2) {
