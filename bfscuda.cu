@@ -292,7 +292,7 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
-    //while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+    while(*v_queuesize) { // it will work until the size of vertex frontier is 0
         extra = *v_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -302,7 +302,7 @@ void runGpu(int startVertex, Graph &G) {
         extra |= extra >> 16;
         extra++;
         //number of blocks scaled to the frontier size
-        num_blocks = extra/1024 + 1;
+        num_blocks = extra/1025 + 1;
         //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
@@ -321,14 +321,14 @@ void runGpu(int startVertex, Graph &G) {
         extra++;
         //print newly produced edge frontier
         //if(level==0) printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
-        num_blocks = (extra)/1024 + 1;
+        num_blocks = (extra)/1025 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         mem = (extra)*2*sizeof(int);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
         //if(level==0) printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
-    //}
+    }
     distances[G.root] = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
