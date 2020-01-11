@@ -178,7 +178,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         else n = extra;
     }
-    int* b2_initial = b1_initial + n;
+
+    int* b2_initial = b1_initial + n*sizeof(int);
 
 
     if(tid < extra && tid >= *e_queuesize) {
