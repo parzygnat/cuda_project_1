@@ -257,7 +257,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
             if (tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                v_queuesize[0] = v_block_alloc_size[n - 1];
+                v_queuesize[0] = v_block_alloc_size[gridDim.x - 1];
                 v_block_alloc_size[gridDim.x - 1] = 0;
                 *e_queuesize = 0;
     
