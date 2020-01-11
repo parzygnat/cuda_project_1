@@ -198,7 +198,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
         printf("1: i work global %d, local %d\n", tid, local_tid);
 
-        b2_initial[local_tid] = b1_initial[local_tid];
+        int x = b2_initial[local_tid]; 
+        b1_initial[local_tid] = x;
 
         printf("2: i work global %d, local %d\n", tid, local_tid);
         return;
