@@ -349,14 +349,14 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 993; i++){
+    for(int i = 1; i < 1024; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 993; i++) {
-        if(i < 32)
-        G.rvector.push_back(i*31);
+    for(int i = 0; i < 1024; i++) {
+        if(i < 1)
+        G.rvector.push_back(0);
         else
-        G.rvector.push_back(31*32);
+        G.rvector.push_back(1023);
     }
     //run CPU sequential bfs
     runCpu(0, G);
