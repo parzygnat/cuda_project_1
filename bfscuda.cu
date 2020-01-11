@@ -94,8 +94,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = e_block_alloc_size[block] = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
-            *v_queuesize = 0;
-
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
@@ -263,7 +261,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
                 v_queuesize[0] = v_block_alloc_size[gridDim.x - 1];
                 v_block_alloc_size[gridDim.x - 1] = 0;
-                *e_queuesize = 0;
     
             }
 
@@ -299,6 +296,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
+            *e_queuesize = 0;
+
+        return;
     }
 
 
