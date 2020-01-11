@@ -151,8 +151,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
-    return;
-
+    
+    if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
     int iter = 0;
     int temp = e_block_alloc_size[tid>>10];
@@ -161,6 +161,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
         iter++;
     }
+}
 
 }
 
