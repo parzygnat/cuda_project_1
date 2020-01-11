@@ -167,8 +167,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
-    extern __shared__ int array[];
-    int* b1_initial = (int*)array; 
+    extern __shared__ int b1_initial[];
     int n;
     int offset = 1;
 
@@ -178,9 +177,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         else n = extra;
     }
-
-    int* b2_initial = b1_initial + n*sizeof(int);
-
     if(tid < extra && tid >= *e_queuesize) {
         b1_initial[local_tid] = 0;
     }
@@ -197,9 +193,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < extra) {
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
         printf("1: i work global %d, local %d\n", tid, local_tid);
-
-        int x = b2_initial[local_tid]; 
-        b1_initial[local_tid] = x;
 
         printf("2: i work global %d, local %d\n", tid, local_tid);
         return;
@@ -296,14 +289,14 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
     
     //now we compact
-    if(b1_initial[local_tid] && tid < *e_queuesize)
+    if(b1_initial[local_tid] != b1_initial[local_tid + 1] && tid < *e_queuesize)
     {
         printf("i work12");
         int ver = e_queue[tid];
         int temp = v_block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
-        v_queue[temp + b2_initial[local_tid]] = ver;
+        v_queue[temp + b1_initial[local_tid]] = ver;
         printf("i work13");
 
     }
@@ -385,7 +378,7 @@ void runGpu(int startVertex, Graph &G) {
         //printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (extra)/1025 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
-        mem = (num_threads)*2*sizeof(int);
+        mem = (num_threads)*sizeof(int);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
