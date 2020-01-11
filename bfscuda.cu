@@ -307,10 +307,10 @@ void runGpu(int startVertex, Graph &G) {
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
-        printf("queue size is %d\n", v_queuesize);
+        printf("queue size is %d\n", *v_queuesize);
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
-        printf("queue size is %d\n", e_queuesize);
+        printf("queue size is %d\n", *e_queuesize);
         extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
