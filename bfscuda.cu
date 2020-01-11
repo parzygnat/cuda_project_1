@@ -196,8 +196,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     if(tid < extra) {
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-        b2_initial[local_tid] = b1_initial[local_tid];
         printf("i work4");
+
+        b2_initial[local_tid] = b1_initial[local_tid];
 
         offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
