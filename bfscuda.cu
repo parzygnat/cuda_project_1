@@ -207,6 +207,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             
         }
+        return;
 
         if (local_tid == 0) {
             int block = tid >> 10;
