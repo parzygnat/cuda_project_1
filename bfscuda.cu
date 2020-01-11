@@ -82,7 +82,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = block_alloc_size[block] = prefixSum[extra - 1];
+            e_queuesize[0] = e_block_alloc_size[block] = prefixSum[extra - 1];
             prefixSum[extra - 1] = 0;
             *v_queuesize = 0;
 
@@ -199,7 +199,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            v_queuesize[0] = block_alloc_size[block] = b2_initial[extra - 1];
+            v_queuesize[0] = v_block_alloc_size[block] = b2_initial[extra - 1];
             b2_initial[extra - 1] = 0;
 
         }
@@ -252,7 +252,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 if (local_tid < d) {
                         int ai = offset*(2*tid+1)-1;
                         int bi = offset*(2*tid+2)-1;
-                        int t = block_alloc_size[ai];
+                        int t = v_block_alloc_size[ai];
                         v_block_alloc_size[ai] = v_block_alloc_size[bi];
                         v_block_alloc_size[bi] += t;
     
@@ -306,7 +306,8 @@ void runGpu(int startVertex, Graph &G) {
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
     v_queue[0] = G.root;
     //for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
-    block_alloc_size[0] = 0;
+    v_block_alloc_size[0] = 0;
+    e_block_alloc_size[0] = 0;
     *v_queuesize = 1;
     level = 0;
     int mem;
