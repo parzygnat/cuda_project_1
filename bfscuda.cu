@@ -241,6 +241,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
+            printf("i work8");
+            return;
             for (int d = gridDim.x>>1; d > 0; d >>=1) {
                 __syncthreads();
                         if(local_tid < d)
@@ -253,8 +255,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     
                 
             }
-            printf("i work8");
-            return;
+
     
             if (tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
