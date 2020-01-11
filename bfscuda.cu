@@ -102,10 +102,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
             }
         }
-
-        
-
-
         //scan on offsets produced by blocks in total
 
         int iter = 0;
@@ -295,7 +291,7 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1024; i++){
+    for(int i = 1; i =< 1024; i++){
         G.cvector.push_back(i);
     }
     for(int i = 0; i < 1024; i++) {
