@@ -273,7 +273,6 @@ void runGpu(int startVertex, Graph &G) {
         if(level==0) printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
-    distances[G.root] = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
