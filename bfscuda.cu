@@ -334,7 +334,7 @@ void runGpu(int startVertex, Graph &G) {
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
         printf("queue size is %d\n", *e_queuesize);
-        printf('\n\n\n');for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf('\n\n\n');
+        printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
         extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -350,7 +350,7 @@ void runGpu(int startVertex, Graph &G) {
         mem = (extra)*2*sizeof(int);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size,distances, level, extra);
         cudaDeviceSynchronize();
-        printf('\n\n\n');for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf('\n\n\n');
+        printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
