@@ -92,7 +92,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = e_block_alloc_size[block] = prefixSum[n - 1];
+            *e_queuesize = prefixSum[n - 1];
+            e_block_alloc_size[block] = *e_queuesize;
             prefixSum[n - 1] = 0;
             *v_queuesize = 0;
 
@@ -152,6 +153,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
 }
 
+if(tid < *v_queuesize){
     //saving into global edge frontier buffer
     int iter = 0;
     int temp = e_block_alloc_size[tid>>10];
@@ -160,6 +162,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
         iter++;
     }
+}
 
 }
 
@@ -207,8 +210,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             
         }
-        return;
-
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
@@ -218,8 +219,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[n - 1] = 0;
 
         }
-        return;
-
 
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
@@ -236,13 +235,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             }
         }
-        printf("i work7");
 
         __syncthreads();
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
-    printf("i work8");
-    return;
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
@@ -258,7 +254,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     
                 
             }
-            printf("i work9");
 
     
             if (tid == 0) {
@@ -268,7 +263,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 *e_queuesize = 0;
     
             }
-            printf("i work10");
 
             //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
             for (int d = 1; d < gridDim.x; d *= 2) {
@@ -280,24 +274,17 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         int t = v_block_alloc_size[ai];
                         v_block_alloc_size[ai] = v_block_alloc_size[bi];
                         v_block_alloc_size[bi] += t;
-    
                 }
             }
-            printf("i work11");
-
     }
-    
     //now we compact
     if(b1_initial[local_tid] != b1_initial[local_tid + 1] && tid < *e_queuesize)
     {
-        printf("i work12");
         int ver = e_queue[tid];
         int temp = v_block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
-        printf("i work13");
-
     }
 }
 
