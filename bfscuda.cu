@@ -319,11 +319,13 @@ void runGpu(int startVertex, Graph &G) {
         extra |= extra >> 16;
         extra++;
         //print newly produced edge frontier
+        if(level == 1 || level==0) printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (extra)/1024 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         mem = (extra)*2*sizeof(int);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
+        if(level == 1 || level==0) printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
     distances[G.root] = 0;
