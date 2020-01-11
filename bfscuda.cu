@@ -204,7 +204,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
-            printf("\ni, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[extra - 1]);
+            printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[n - 1]);
             b2_initial[n - 1] = 0;
 
         }
