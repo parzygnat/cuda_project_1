@@ -177,6 +177,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         else n = extra;
     }
+    printf("n is %d", n);
+    return;
     if(tid < extra && tid >= *e_queuesize) {
         b1_initial[local_tid] = 0;
     }
