@@ -347,7 +347,8 @@ void runGpu(int startVertex, Graph &G) {
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
         printf("queue size is %d\n", *v_queuesize);
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
-        cudaDeviceSynchronize();
+        gpuErrchk( cudaPeekAtLastError() );
+        gpuErrchk( cudaDeviceSynchronize() );
         printf("queue size is %d\n", *e_queuesize);
         printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
         extra = *e_queuesize;
