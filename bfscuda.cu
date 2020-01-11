@@ -169,7 +169,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int local_tid = threadIdx.x;
     extern __shared__ int array[];
     int* b1_initial = (int*)array; 
-    int n = *e_queuesize;
+    int n;
     int offset = 1;
 
     if(tid < extra) {
@@ -180,7 +180,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
 
     int* b2_initial = b1_initial + n*sizeof(int);
-
+    printf("i work");
 
     if(tid < extra && tid >= *e_queuesize) {
         b1_initial[local_tid] = 0;
