@@ -238,11 +238,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         __syncthreads();
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
+    printf("i work8");
+    return;
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
-            printf("i work8");
-            return;
             for (int d = gridDim.x>>1; d > 0; d >>=1) {
                 __syncthreads();
                         if(local_tid < d)
