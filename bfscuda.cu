@@ -38,7 +38,7 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level, int extra)
+__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
@@ -112,17 +112,17 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     {
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
-                    block_alloc_size[bi] += block_alloc_size[ai];
+                    e_block_alloc_size[bi] += e_block_alloc_size[ai];
                     }
                     offset *= 2;
                 
             
         }
 
-        if (local_tid == 0) {
+        if (tid == 0) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = block_alloc_size[extra - 1];
-            block_alloc_size[gridDim.x - 1] = 0;
+            e_queuesize[0] = e_block_alloc_size[extra - 1];
+            e_block_alloc_size[gridDim.x - 1] = 0;
             *v_queuesize = 0;
 
         }
@@ -134,9 +134,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     int ai = offset*(2*tid+1)-1;
                     int bi = offset*(2*tid+2)-1;
 
-                    int t = block_alloc_size[ai];
-                    block_alloc_size[ai] = block_alloc_size[bi];
-                    block_alloc_size[bi] += t;
+                    int t = e_block_alloc_size[ai];
+                    e_block_alloc_size[ai] = e_block_alloc_size[bi];
+                    e_block_alloc_size[bi] += t;
 
             }
         }
@@ -144,7 +144,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     //saving into global edge frontier buffer
     int iter = 0;
-    int temp = block_alloc_size[tid>>10];
+    int temp = e_block_alloc_size[tid>>10];
     if (gridDim.x == 1) temp = 0;
     for(int i = rvector[u]; i < rvector[u + 1]; i++) {
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
@@ -153,7 +153,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
 }
 
-__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* block_alloc_size, int* distances, int level, int extra)
+__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
 {
 
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
@@ -231,17 +231,17 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         {
                         int ai = offset*(2*tid+1)-1;
                         int bi = offset*(2*tid+2)-1;
-                        block_alloc_size[bi] += block_alloc_size[ai];
+                        v_block_alloc_size[bi] += v_block_alloc_size[ai];
                         }
                         offset *= 2;
                     
                 
             }
     
-            if (local_tid == 0) {
+            if (tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                v_queuesize[0] = block_alloc_size[extra - 1];
-                block_alloc_size[gridDim.x - 1] = 0;
+                v_queuesize[0] = v_block_alloc_size[extra - 1];
+                v_block_alloc_size[gridDim.x - 1] = 0;
                 *e_queuesize = 0;
     
             }
@@ -252,10 +252,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 if (local_tid < d) {
                         int ai = offset*(2*tid+1)-1;
                         int bi = offset*(2*tid+2)-1;
-    
                         int t = block_alloc_size[ai];
-                        block_alloc_size[ai] = block_alloc_size[bi];
-                        block_alloc_size[bi] += t;
+                        v_block_alloc_size[ai] = v_block_alloc_size[bi];
+                        v_block_alloc_size[bi] += t;
     
                 }
             }
@@ -264,7 +263,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //now we compact
     if(b1_initial[local_tid])
     {
-        int temp = block_alloc_size[tid>>10];
+        int temp = v_block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[e_queue[tid]] = level + 1;
         v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
@@ -280,7 +279,8 @@ void runGpu(int startVertex, Graph &G) {
     int num_threads;
     int* v_queue;
     int* e_queue;
-    int* block_alloc_size;
+    int* v_block_alloc_size;
+    int* e_block_alloc_size;
     int* distances;
     int* cvector;
     int* rvector;
@@ -293,7 +293,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&v_queuesize, sizeof(int));
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
-    cudaMallocManaged(&block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
+    cudaMallocManaged(&v_block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
+    cudaMallocManaged(&e_block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
     
     //initializations 
@@ -332,6 +333,7 @@ void runGpu(int startVertex, Graph &G) {
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
         printf("queue size is %d\n", *e_queuesize);
+        printf('\n\n\n');for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf('\n\n\n');
         extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -342,18 +344,17 @@ void runGpu(int startVertex, Graph &G) {
         extra++;
         //print newly produced edge frontier
         //printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
-        printf("\n\n\n\n\n");
         num_blocks = (extra)/1025 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         mem = (extra)*2*sizeof(int);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, block_alloc_size, distances, level, extra);
         cudaDeviceSynchronize();
+        printf('\n\n\n');for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf('\n\n\n');
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    for(int i = 0; i < 9; i++) printf("%d ", block_alloc_size[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
