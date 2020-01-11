@@ -275,8 +275,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         v_block_alloc_size[bi] += t;
                 }
             }
-            printf("i work8");
-            return;
     }
     return;
     //now we compact
