@@ -207,7 +207,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             
         }
         printf("i work5");
-
+        printf("i work6");
+        return;
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
@@ -216,8 +217,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[n - 1] = 0;
 
         }
-        printf("i work6");
-        return;
+
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
