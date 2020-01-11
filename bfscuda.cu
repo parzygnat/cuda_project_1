@@ -204,7 +204,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
-                    b2_initial[bi] += b2_initial[ai];
+                    b1_initial[bi] += b1_initial[ai];
                     }
                     offset *= 2;
                 
@@ -215,9 +215,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
-            //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[n - 1]);
-            b2_initial[n - 1] = 0;
+            v_queuesize[0] = v_block_alloc_size[block] = b1_initial[n - 1];
+            //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
+            b1_initial[n - 1] = 0;
 
         }
         printf("i work6");
@@ -230,9 +230,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
 
-                    int t = b2_initial[ai];
-                    b2_initial[ai] = b2_initial[bi];
-                    b2_initial[bi] += t;
+                    int t = b1_initial[ai];
+                    b1_initial[ai] = b1_initial[bi];
+                    b1_initial[bi] += t;
 
                 
             }
