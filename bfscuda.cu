@@ -148,6 +148,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
+    return;
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
     int iter = 0;
