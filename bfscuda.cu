@@ -361,7 +361,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaFree(e_queuesize);
     cudaFree(v_queue);
     cudaFree(e_queue);
-    cudaFree(block_alloc_size);
+    cudaFree(e_block_alloc_size);
+    cudaFree(v_block_alloc_size);
     cudaFree(distances);
     cudaFree(cvector);
     cudaFree(rvector);
