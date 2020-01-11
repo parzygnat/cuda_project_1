@@ -177,134 +177,133 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             n = 1024;
         }
         else n = extra;
+    }
+
+    int* b2_initial = b1_initial + n*sizeof(int);
+
+    if(tid < extra && tid >= *e_queuesize) {
+        b1_initial[local_tid] = 0;
+    }
+
     
+    if(local_tid < n && tid < *e_queuesize) {
+        b1_initial[local_tid] = 1;
 
-        int* b2_initial = b1_initial + n*sizeof(int);
-
-        if(tid < extra && tid >= *e_queuesize) {
+        if(distances[e_queue[tid]] >= 0)
             b1_initial[local_tid] = 0;
+    }
+
+
+    if(tid < extra) {
+    // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
+                printf("i work4");
+        return;
+        b2_initial[local_tid] = b1_initial[local_tid];
+
+
+
+        offset = 1;
+        for (int d = n>>1; d > 0; d >>=1) {
+            __syncthreads();
+                    if(local_tid < d)
+                    {
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
+                    b2_initial[bi] += b2_initial[ai];
+                    }
+                    offset *= 2;
+                
+            
         }
+        printf("i work5");
 
-        
-        if(local_tid < n && tid < *e_queuesize) {
-            b1_initial[local_tid] = 1;
+        if (local_tid == 0) {
+            int block = tid >> 10;
+            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+            v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
+            //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[n - 1]);
+            b2_initial[n - 1] = 0;
 
-            if(distances[e_queue[tid]] >= 0)
-                b1_initial[local_tid] = 0;
         }
+        printf("i work6");
 
+        //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+        for (int d = 1; d < n; d *= 2) {
+            offset >>= 1;
+            __syncthreads();
+            if (local_tid < d) {
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
 
-        if(tid < extra) {
-        // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-            printf("i work4");
-            return;
-            b2_initial[local_tid] = b1_initial[local_tid];
+                    int t = b2_initial[ai];
+                    b2_initial[ai] = b2_initial[bi];
+                    b2_initial[bi] += t;
 
+                
+            }
+        }
+        printf("i work7");
 
-
+        __syncthreads();
+        // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
+    }
+    printf("i work8");
+    return;
+    if(tid < gridDim.x && gridDim.x != 1) {
+    //scan on offsets produced by blocks in 
             offset = 1;
-            for (int d = n>>1; d > 0; d >>=1) {
+            for (int d = gridDim.x>>1; d > 0; d >>=1) {
                 __syncthreads();
                         if(local_tid < d)
                         {
                         int ai = offset*(2*local_tid+1)-1;
                         int bi = offset*(2*local_tid+2)-1;
-                        b2_initial[bi] += b2_initial[ai];
+                        v_block_alloc_size[bi] += v_block_alloc_size[ai];
                         }
                         offset *= 2;
                     
                 
             }
-            printf("i work5");
+            printf("i work9");
 
-            if (local_tid == 0) {
-                int block = tid >> 10;
-                // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
-                //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[n - 1]);
-                b2_initial[n - 1] = 0;
-
+    
+            if (tid == 0) {
+            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+                v_queuesize[0] = v_block_alloc_size[n - 1];
+                v_block_alloc_size[gridDim.x - 1] = 0;
+                *e_queuesize = 0;
+    
             }
-            printf("i work6");
+            printf("i work10");
 
             //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-            for (int d = 1; d < n; d *= 2) {
+            for (int d = 1; d < gridDim.x; d *= 2) {
                 offset >>= 1;
                 __syncthreads();
                 if (local_tid < d) {
                         int ai = offset*(2*local_tid+1)-1;
                         int bi = offset*(2*local_tid+2)-1;
-
-                        int t = b2_initial[ai];
-                        b2_initial[ai] = b2_initial[bi];
-                        b2_initial[bi] += t;
-
-                    
+                        int t = v_block_alloc_size[ai];
+                        v_block_alloc_size[ai] = v_block_alloc_size[bi];
+                        v_block_alloc_size[bi] += t;
+    
                 }
             }
-            printf("i work7");
+            printf("i work11");
 
-            __syncthreads();
-            // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
-        }
-        printf("i work8");
-        return;
-        if(tid < gridDim.x && gridDim.x != 1) {
-        //scan on offsets produced by blocks in 
-                offset = 1;
-                for (int d = gridDim.x>>1; d > 0; d >>=1) {
-                    __syncthreads();
-                            if(local_tid < d)
-                            {
-                            int ai = offset*(2*local_tid+1)-1;
-                            int bi = offset*(2*local_tid+2)-1;
-                            v_block_alloc_size[bi] += v_block_alloc_size[ai];
-                            }
-                            offset *= 2;
-                        
-                    
-                }
-                printf("i work9");
+    }
+    
+    //now we compact
+    if(b1_initial[local_tid] && tid < *e_queuesize)
+    {
+        printf("i work12");
+        int ver = e_queue[tid];
+        int temp = v_block_alloc_size[tid>>10];
+        if (gridDim.x == 1) temp = 0;
+        distances[ver] = level + 1;
+        v_queue[temp + b2_initial[local_tid]] = ver;
+        printf("i work13");
 
-        
-                if (tid == 0) {
-                // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                    v_queuesize[0] = v_block_alloc_size[n - 1];
-                    v_block_alloc_size[gridDim.x - 1] = 0;
-                    *e_queuesize = 0;
-        
-                }
-                printf("i work10");
-
-                //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-                for (int d = 1; d < gridDim.x; d *= 2) {
-                    offset >>= 1;
-                    __syncthreads();
-                    if (local_tid < d) {
-                            int ai = offset*(2*local_tid+1)-1;
-                            int bi = offset*(2*local_tid+2)-1;
-                            int t = v_block_alloc_size[ai];
-                            v_block_alloc_size[ai] = v_block_alloc_size[bi];
-                            v_block_alloc_size[bi] += t;
-        
-                    }
-                }
-                printf("i work11");
-
-        }
-        
-        //now we compact
-        if(b1_initial[local_tid] && tid < *e_queuesize)
-        {
-            printf("i work12");
-            int ver = e_queue[tid];
-            int temp = v_block_alloc_size[tid>>10];
-            if (gridDim.x == 1) temp = 0;
-            distances[ver] = level + 1;
-            v_queue[temp + b2_initial[local_tid]] = ver;
-            printf("i work13");
-
-        }
     }
 }
 
