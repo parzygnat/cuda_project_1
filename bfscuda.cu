@@ -92,7 +92,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = e_block_alloc_size[block] = prefixSum[n - 1];
+            e_queuesize[0] = prefixSum[n - 1];
+            e_block_alloc_size[block] = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -372,6 +373,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaDeviceSynchronize() );
         printf("expansion, e_size: %d\n\n\n", *e_queuesize);
         printf("\n\n\n e_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
+        if(level == 1) printf("\n\n\n e_frontier ");for(int i = 0; i < e_queuesize; i++) printf("%d ", e_queue[i]);printf("\n\n\n");
         extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -416,7 +418,7 @@ int main(void)
         G.cvector.push_back(i);
     }
     for(int i = 0; i < 1 + 10000 + 1; i++) {
-        if(i < 1)
+        if(i == 0)
         G.rvector.push_back(0);
         else
         G.rvector.push_back(10000);
