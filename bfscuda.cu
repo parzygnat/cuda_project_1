@@ -80,8 +80,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             __syncthreads();
                     if(local_tid < d)
                     {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
                     prefixSum[bi] += prefixSum[ai];
                     }
                     offset *= 2;
@@ -102,8 +102,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
 
                     int t = prefixSum[ai];
                     prefixSum[ai] = prefixSum[bi];
@@ -120,8 +120,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             __syncthreads();
                     if(local_tid < d)
                     {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
                     e_block_alloc_size[bi] += e_block_alloc_size[ai];
                     }
                     offset *= 2;
@@ -141,8 +141,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
 
                     int t = e_block_alloc_size[ai];
                     e_block_alloc_size[ai] = e_block_alloc_size[bi];
@@ -201,8 +201,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             __syncthreads();
                     if(local_tid < d)
                     {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
                     b2_initial[bi] += b2_initial[ai];
                     }
                     offset *= 2;
@@ -223,8 +223,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+                    int ai = offset*(2*local_tid+1)-1;
+                    int bi = offset*(2*local_tid+2)-1;
 
                     int t = b2_initial[ai];
                     b2_initial[ai] = b2_initial[bi];
@@ -244,8 +244,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 __syncthreads();
                         if(local_tid < d)
                         {
-                        int ai = offset*(2*tid+1)-1;
-                        int bi = offset*(2*tid+2)-1;
+                        int ai = offset*(2*local_tid+1)-1;
+                        int bi = offset*(2*local_tid+2)-1;
                         v_block_alloc_size[bi] += v_block_alloc_size[ai];
                         }
                         offset *= 2;
@@ -265,8 +265,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 offset >>= 1;
                 __syncthreads();
                 if (local_tid < d) {
-                        int ai = offset*(2*tid+1)-1;
-                        int bi = offset*(2*tid+2)-1;
+                        int ai = offset*(2*local_tid+1)-1;
+                        int bi = offset*(2*local_tid+2)-1;
                         int t = v_block_alloc_size[ai];
                         v_block_alloc_size[ai] = v_block_alloc_size[bi];
                         v_block_alloc_size[bi] += t;
