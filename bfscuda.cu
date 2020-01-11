@@ -217,7 +217,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
         }
         printf("i work6");
-
+        return;
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
