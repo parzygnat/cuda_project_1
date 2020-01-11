@@ -292,7 +292,7 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
-    while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+    //while(*v_queuesize) { // it will work until the size of vertex frontier is 0
         extra = *v_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -328,7 +328,7 @@ void runGpu(int startVertex, Graph &G) {
         cudaDeviceSynchronize();
         //if(level==0) printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
-    }
+    //}
     distances[G.root] = 0;
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
