@@ -263,9 +263,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     
             }
 
-            printf("i work8");
-            return;
-
             //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
             for (int d = 1; d < gridDim.x; d *= 2) {
                 offset >>= 1;
@@ -278,6 +275,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         v_block_alloc_size[bi] += t;
                 }
             }
+            printf("i work8");
+            return;
     }
     return;
     //now we compact
