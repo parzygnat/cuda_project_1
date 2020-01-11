@@ -186,7 +186,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         b1_initial[local_tid] = 0;
     }
 
-    if(local_tid < n) {
+    if(local_tid < n && tid < *e_queuesize) {
         b1_initial[local_tid] = 1;
         if(distances[e_queue[tid]] >= 0)
             b1_initial[local_tid] = 0;
@@ -276,7 +276,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
     
     //now we compact
-    if(b1_initial[local_tid])
+    if(b1_initial[local_tid] && tid < *e_queuesize)
     {
         int ver = e_queue[tid];
         int temp = v_block_alloc_size[tid>>10];
