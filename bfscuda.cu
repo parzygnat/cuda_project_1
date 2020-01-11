@@ -190,6 +190,13 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[local_tid] = 0;
     }
 
+    
+    if (local_tid == 0) {
+        printf("n is %d\n", n);
+        return;
+        }
+        return;
+
 
     if(tid < extra) {
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
@@ -208,8 +215,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             
         }
         printf("i work5");
-        printf("n is %d", n);
-        return;
+
 
         if (local_tid == 0) {
             int block = tid >> 10;
