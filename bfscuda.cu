@@ -151,6 +151,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
+    return;
 
     //saving into global edge frontier buffer
     int iter = 0;
