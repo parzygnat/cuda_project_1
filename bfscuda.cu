@@ -361,8 +361,8 @@ void runGpu(int startVertex, Graph &G) {
         //printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
         num_blocks = (extra)/1025 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
-        mem = (extra)*2*sizeof(int);
-        contraction<<<1, 1, 1>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
+        mem = (num_threads)*2*sizeof(int);
+        contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
