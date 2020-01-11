@@ -49,24 +49,25 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     
     if(tid < extra) {
         if(*v_queuesize > 1024) {
-            n = extra = 1024;
+            n = 1024;
         }
+        else n = extra;
     }
     
-    if(tid < extra && tid >= n) {
-        prefixSum[tid] = 0;
+    if(tid < extra && tid >= *v_queuesize) {
+        prefixSum[local_tid] = 0;
     }
 
 
     if(tid < n) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
-        prefixSum[tid] = rvector[u + 1] - rvector[u];
+        prefixSum[local_tid] = rvector[u + 1] - rvector[u];
     }
     
     if(tid < extra) {
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
-        for (int d = extra>>1; d > 0; d >>=1) {
+        for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
                     if(local_tid < d)
                     {
@@ -82,13 +83,13 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = e_block_alloc_size[block] = prefixSum[extra - 1];
-            prefixSum[extra - 1] = 0;
+            e_queuesize[0] = e_block_alloc_size[block] = prefixSum[n - 1];
+            prefixSum[n - 1] = 0;
             *v_queuesize = 0;
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < extra; d *= 2) {
+        for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
@@ -121,7 +122,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         if (tid == 0) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = e_block_alloc_size[extra - 1];
+            e_queuesize[0] = e_block_alloc_size[n - 1];
             e_block_alloc_size[gridDim.x - 1] = 0;
             *v_queuesize = 0;
 
@@ -164,11 +165,14 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int n = *e_queuesize;
     int offset = 1;
 
-    if(*e_queuesize > 1024) {
-        n = 1024;
+    if(tid < extra) {
+        if(*e_queuesize > 1024) {
+            n = 1024;
+        }
+        else n = extra;
     }
 
-    if(tid < extra && tid >= n) {
+    if(tid < extra && tid >= *e_queuesize) {
         b1_initial[tid] = 0;
     }
 
@@ -183,7 +187,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         b2_initial[local_tid] = b1_initial[local_tid];
 
         offset = 1;
-        for (int d = extra>>1; d > 0; d >>=1) {
+        for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
                     if(local_tid < d)
                     {
@@ -199,12 +203,13 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            v_queuesize[0] = v_block_alloc_size[block] = b2_initial[extra - 1];
-            b2_initial[extra - 1] = 0;
+            v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
+            printf("\ni, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[extra - 1])
+            b2_initial[n - 1] = 0;
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < extra; d *= 2) {
+        for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
             if (local_tid < d) {
@@ -240,7 +245,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     
             if (tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                v_queuesize[0] = v_block_alloc_size[extra - 1];
+                v_queuesize[0] = v_block_alloc_size[n - 1];
                 v_block_alloc_size[gridDim.x - 1] = 0;
                 *e_queuesize = 0;
     
@@ -263,10 +268,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //now we compact
     if(b1_initial[local_tid])
     {
+        int ver = e_queue[tid];
         int temp = v_block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
-        distances[e_queue[tid]] = level + 1;
-        v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
+        distances[ver] = level + 1;
+        v_queue[temp + b2_initial[local_tid]] = ver;
     }
     }
 
