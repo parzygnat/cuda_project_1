@@ -207,6 +207,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             
         }
+
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
@@ -216,6 +217,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[n - 1] = 0;
 
         }
+
 
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
@@ -232,10 +234,12 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             }
         }
+        printf("i work7");
 
         __syncthreads();
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
+    printf("i work8");
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
