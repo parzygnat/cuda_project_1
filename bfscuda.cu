@@ -188,7 +188,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     
     if(local_tid < n && tid < *e_queuesize) {
         b1_initial[local_tid] = 1;
-        printf("i work3");
 
         if(distances[e_queue[tid]] >= 0)
             b1_initial[local_tid] = 0;
