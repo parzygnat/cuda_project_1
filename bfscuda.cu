@@ -291,7 +291,7 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i =< 1024; i++){
+    for(int i = 1; i < 1025; i++){
         G.cvector.push_back(i);
     }
     for(int i = 0; i < 1024; i++) {
