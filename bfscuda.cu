@@ -190,88 +190,88 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[local_tid] = 0;
     }
 
-    if(tid < extra) {
-    // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-        b2_initial[local_tid] = b1_initial[local_tid];
+    // if(tid < extra) {
+    // // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
+    //     b2_initial[local_tid] = b1_initial[local_tid];
 
-        offset = 1;
-        for (int d = n>>1; d > 0; d >>=1) {
-            __syncthreads();
-                    if(local_tid < d)
-                    {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
-                    b2_initial[bi] += b2_initial[ai];
-                    }
-                    offset *= 2;
+    //     offset = 1;
+    //     for (int d = n>>1; d > 0; d >>=1) {
+    //         __syncthreads();
+    //                 if(local_tid < d)
+    //                 {
+    //                 int ai = offset*(2*tid+1)-1;
+    //                 int bi = offset*(2*tid+2)-1;
+    //                 b2_initial[bi] += b2_initial[ai];
+    //                 }
+    //                 offset *= 2;
                 
             
-        }
+    //     }
 
-        if (local_tid == 0) {
-            int block = tid >> 10;
-            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
-            //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[n - 1]);
-            b2_initial[n - 1] = 0;
+    //     if (local_tid == 0) {
+    //         int block = tid >> 10;
+    //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+    //         v_queuesize[0] = v_block_alloc_size[block] = b2_initial[n - 1];
+    //         //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b2_initial[n - 1]);
+    //         b2_initial[n - 1] = 0;
 
-        }
-        //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < n; d *= 2) {
-            offset >>= 1;
-            __syncthreads();
-            if (local_tid < d) {
-                    int ai = offset*(2*tid+1)-1;
-                    int bi = offset*(2*tid+2)-1;
+    //     }
+    //     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+    //     for (int d = 1; d < n; d *= 2) {
+    //         offset >>= 1;
+    //         __syncthreads();
+    //         if (local_tid < d) {
+    //                 int ai = offset*(2*tid+1)-1;
+    //                 int bi = offset*(2*tid+2)-1;
 
-                    int t = b2_initial[ai];
-                    b2_initial[ai] = b2_initial[bi];
-                    b2_initial[bi] += t;
+    //                 int t = b2_initial[ai];
+    //                 b2_initial[ai] = b2_initial[bi];
+    //                 b2_initial[bi] += t;
 
                 
-            }
-        }
-        __syncthreads();
-        // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
-    }
+    //         }
+    //     }
+    //     __syncthreads();
+    //     // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
+    // }
 
-    // if(tid < gridDim.x && gridDim.x != 1) {
-    // //scan on offsets produced by blocks in 
-    //         offset = 1;
-    //         for (int d = gridDim.x>>1; d > 0; d >>=1) {
-    //             __syncthreads();
-    //                     if(local_tid < d)
-    //                     {
-    //                     int ai = offset*(2*tid+1)-1;
-    //                     int bi = offset*(2*tid+2)-1;
-    //                     v_block_alloc_size[bi] += v_block_alloc_size[ai];
-    //                     }
-    //                     offset *= 2;
+    if(tid < gridDim.x && gridDim.x != 1) {
+    //scan on offsets produced by blocks in 
+            offset = 1;
+            for (int d = gridDim.x>>1; d > 0; d >>=1) {
+                __syncthreads();
+                        if(local_tid < d)
+                        {
+                        int ai = offset*(2*tid+1)-1;
+                        int bi = offset*(2*tid+2)-1;
+                        v_block_alloc_size[bi] += v_block_alloc_size[ai];
+                        }
+                        offset *= 2;
                     
                 
-    //         }
+            }
     
-    //         if (tid == 0) {
-    //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-    //             v_queuesize[0] = v_block_alloc_size[n - 1];
-    //             v_block_alloc_size[gridDim.x - 1] = 0;
-    //             *e_queuesize = 0;
+            if (tid == 0) {
+            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+                v_queuesize[0] = v_block_alloc_size[n - 1];
+                v_block_alloc_size[gridDim.x - 1] = 0;
+                *e_queuesize = 0;
     
-    //         }
-    //         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-    //         for (int d = 1; d < gridDim.x; d *= 2) {
-    //             offset >>= 1;
-    //             __syncthreads();
-    //             if (local_tid < d) {
-    //                     int ai = offset*(2*tid+1)-1;
-    //                     int bi = offset*(2*tid+2)-1;
-    //                     int t = v_block_alloc_size[ai];
-    //                     v_block_alloc_size[ai] = v_block_alloc_size[bi];
-    //                     v_block_alloc_size[bi] += t;
+            }
+            //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+            for (int d = 1; d < gridDim.x; d *= 2) {
+                offset >>= 1;
+                __syncthreads();
+                if (local_tid < d) {
+                        int ai = offset*(2*tid+1)-1;
+                        int bi = offset*(2*tid+2)-1;
+                        int t = v_block_alloc_size[ai];
+                        v_block_alloc_size[ai] = v_block_alloc_size[bi];
+                        v_block_alloc_size[bi] += t;
     
-    //             }
-    //         }
-    // }
+                }
+            }
+    }
     
     //now we compact
     if(b1_initial[local_tid])
