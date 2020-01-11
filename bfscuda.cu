@@ -287,7 +287,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         v_queue[temp + b1_initial[local_tid]] = ver;
         return;
     }
-    
+    return;
     //now we compact
     if(tid < *e_queuesize && local_tid != 1024 && tid != *e_queuesize && b1_initial[local_tid] != b1_initial[local_tid + 1])
     {
