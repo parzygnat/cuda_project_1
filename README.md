@@ -1,1 +1,0 @@
-# cuda_project_1
