@@ -47,9 +47,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int n = *v_queuesize;
     
     if(tid < extra) {
-
         if(*v_queuesize > 1024) {
-            n = 1024;
+            n = extra = 1024;
         }
     }
     
@@ -108,31 +107,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
 
         //scan on offsets produced by blocks in total
-        if(gridDim.x > 1) {
-            if(tid < gridDim.x) {
-                for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
-                    __syncthreads();
-                    if ((tid & (nodeSize - 1)) == 0) {
-                            int nextPosition = tid + (nodeSize >> 1);
-                            block_alloc_size[tid] += block_alloc_size[nextPosition];
-                        }
-                    
-                }
-                if (tid == 0) {
-                    *e_queuesize = block_alloc_size[tid];
-                }
-                for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
-                    __syncthreads();
-                    if ((tid & (nodeSize - 1)) == 0) {
-                            int next_position = tid + (nodeSize >> 1);
-                            int tmp = block_alloc_size[tid];
-                            block_alloc_size[tid] -= block_alloc_size[next_position];
-                            block_alloc_size[next_position] = tmp;
-                        }
-                    
-                }
-            }
-        }
+
         int iter = 0;
         int temp = block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
@@ -209,35 +184,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         __syncthreads();
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
-    }
-
-    //scan on offsets produced by blocks in total
-    if(gridDim.x > 1) {
-        if(tid < gridDim.x) {
-            for (int nodeSize = 2; nodeSize <= gridDim.x; nodeSize <<= 1) {
-                __syncthreads();
-                if ((tid & (nodeSize - 1)) == 0) {
-                    if (tid + (nodeSize >> 1) < gridDim.x) {
-                        int nextPosition = tid + (nodeSize >> 1);
-                        block_alloc_size[tid] += block_alloc_size[nextPosition];
-                    }
-                }
-            }
-            if (tid == 0) {
-                *v_queuesize = block_alloc_size[tid];
-            }
-            for (int nodeSize = 1024; nodeSize > 1; nodeSize >>= 1) {
-                __syncthreads();
-                if ((tid & (nodeSize - 1)) == 0) {
-                    if (tid + (nodeSize >> 1) < *v_queuesize) {
-                        int next_position = tid + (nodeSize >> 1);
-                        int tmp = block_alloc_size[tid];
-                        block_alloc_size[tid] -= block_alloc_size[next_position];
-                        block_alloc_size[next_position] = tmp;
-                    }
-                }
-            }
-        }
     }
     
     //now we compact
