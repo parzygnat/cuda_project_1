@@ -133,7 +133,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = e_block_alloc_size[n - 1];
             e_block_alloc_size[gridDim.x - 1] = 0;
-            *v_queuesize = 0;
 
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -151,7 +150,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
-    if(tid == 0) {
+    if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
     int iter = 0;
     int temp = e_block_alloc_size[tid>>10];
@@ -160,7 +159,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
         iter++;
     }
+
 }
+    if(tid == 0) *v_queuesize = 0;
+
 
 
 }
