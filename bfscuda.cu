@@ -262,7 +262,8 @@ void runGpu(int startVertex, Graph &G) {
         extra |= extra >> 16;
         extra++;
         //print newly produced edge frontier
-        //if(level==0) printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
+        if(level==0) printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
+        printf("\n\n\n\n\n");
         num_blocks = (extra)/1025 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         mem = (extra)*2*sizeof(int);
