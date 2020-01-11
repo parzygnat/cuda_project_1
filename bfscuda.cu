@@ -207,12 +207,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             
         }
-        printf("i work5");
-        if (local_tid == 0) {
-            printf("n is %d\n", n);
-            return;
-        }
-        return;
 
         if (local_tid == 0) {
             int block = tid >> 10;
@@ -226,6 +220,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[n - 1] = 0;
 
         }
+        return;
+
 
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
