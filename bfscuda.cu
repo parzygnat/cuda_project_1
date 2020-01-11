@@ -151,7 +151,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
-    if(tid < *v_queuesize) {
+    if(tid == 0) {
     //saving into global edge frontier buffer
     int iter = 0;
     int temp = e_block_alloc_size[tid>>10];
