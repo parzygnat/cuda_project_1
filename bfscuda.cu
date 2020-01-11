@@ -192,10 +192,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     if(tid < extra) {
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-        printf("1: i work global %d, local %d\n", tid, local_tid);
-
-        printf("2: i work global %d, local %d\n", tid, local_tid);
-        return;
 
         offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
@@ -243,7 +239,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
     printf("i work8");
-    return;
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
