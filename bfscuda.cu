@@ -121,7 +121,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int local_tid = threadIdx.x;
     extern __shared__ int array[];
     int* b1_initial = (int*)array; 
-    int* b2_initial = b1_initial + *e_queuesize;
+    int* b2_initial = b1_initial + (*e_queuesize)*sizeof(int);
     int n = *e_queuesize;
     if(*e_queuesize > 1024) {
         n = 1024;
@@ -188,7 +188,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         int temp = block_alloc_size[tid>>10];
         if (gridDim.x == 1) temp = 0;
         distances[e_queue[local_tid]] = level + 1;
-        v_queue[temp + b2_initial[local_tid] - 1] = e_queue[local_tid];
+        v_queue[temp + b2_initial[local_tid]] = e_queue[local_tid];
     }
     }
 
