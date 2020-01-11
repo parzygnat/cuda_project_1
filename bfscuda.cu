@@ -298,7 +298,7 @@ int main(void)
         if(i < 1)
         G.rvector.push_back(0);
         else
-        G.rvector.push_back(1023);
+        G.rvector.push_back(1024);
     }
     //run CPU sequential bfs
     runCpu(0, G);
