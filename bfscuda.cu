@@ -371,7 +371,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         printf("expansion, e_size: %d\n\n\n", *e_queuesize);
-        printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
+        printf("\n\n\n e_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
         extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -389,7 +389,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         printf("contraction, v_size: %d\n\n\n", *v_queuesize);
-        printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
+        printf("\n\n\n v_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
