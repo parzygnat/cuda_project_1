@@ -165,7 +165,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
 {
-    printf("i work\n\n");
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     extern __shared__ int array[];
@@ -275,15 +274,15 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
     
     //now we compact
-    if(b1_initial[local_tid])
-    {
-        int ver = e_queue[tid];
-        int temp = v_block_alloc_size[tid>>10];
-        if (gridDim.x == 1) temp = 0;
-        distances[ver] = level + 1;
-        v_queue[temp + b2_initial[local_tid]] = ver;
-    }
-    }
+    // if(b1_initial[local_tid])
+    // {
+    //     int ver = e_queue[tid];
+    //     int temp = v_block_alloc_size[tid>>10];
+    //     if (gridDim.x == 1) temp = 0;
+    //     distances[ver] = level + 1;
+    //     v_queue[temp + b2_initial[local_tid]] = ver;
+    // }
+}
 
 
 void runGpu(int startVertex, Graph &G) {
