@@ -212,6 +212,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+            printf("n is %d\n", n);
             *v_queuesize = b1_initial[n - 1];
             printf("i work6");
             return;
