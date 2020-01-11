@@ -296,7 +296,7 @@ int main(void)
     for(int i = 1; i < 1025; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1025; i++) {
+    for(int i = 0; i < 1026; i++) {
         if(i < 1)
         G.rvector.push_back(0);
         else
