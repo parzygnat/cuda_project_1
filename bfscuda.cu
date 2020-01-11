@@ -92,8 +92,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if (local_tid == 0) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            *e_queuesize = prefixSum[n - 1];
-            e_block_alloc_size[block] = *e_queuesize;
+            e_queuesize[0] = e_block_alloc_size[block] = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
             *v_queuesize = 0;
 
@@ -153,7 +152,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
 }
 
-if(tid < *v_queuesize){
     //saving into global edge frontier buffer
     int iter = 0;
     int temp = e_block_alloc_size[tid>>10];
@@ -162,7 +160,6 @@ if(tid < *v_queuesize){
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
         iter++;
     }
-}
 
 }
 
