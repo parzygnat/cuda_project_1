@@ -373,11 +373,11 @@ int main(void)
     for(int i = 1; i < 1 + 10000; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 10 000 + 1; i++) {
+    for(int i = 0; i < 1 + 10000 + 1; i++) {
         if(i < 1)
         G.rvector.push_back(0);
         else
-        G.rvector.push_back(10 000);
+        G.rvector.push_back(10000);
     }
     //run CPU sequential bfs
     runCpu(0, G);
