@@ -275,6 +275,7 @@ void runGpu(int startVertex, Graph &G) {
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
+    printf("num vertices is: %d", num_vertices);
     for(int i = 0; i < num_vertices; i++) printf("%d ", distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     cudaFree(v_queuesize);
