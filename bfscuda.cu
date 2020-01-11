@@ -235,53 +235,53 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
 
-    if(tid < gridDim.x && gridDim.x != 1) {
-    //scan on offsets produced by blocks in 
-            offset = 1;
-            for (int d = gridDim.x>>1; d > 0; d >>=1) {
-                __syncthreads();
-                        if(local_tid < d)
-                        {
-                        int ai = offset*(2*tid+1)-1;
-                        int bi = offset*(2*tid+2)-1;
-                        v_block_alloc_size[bi] += v_block_alloc_size[ai];
-                        }
-                        offset *= 2;
+    // if(tid < gridDim.x && gridDim.x != 1) {
+    // //scan on offsets produced by blocks in 
+    //         offset = 1;
+    //         for (int d = gridDim.x>>1; d > 0; d >>=1) {
+    //             __syncthreads();
+    //                     if(local_tid < d)
+    //                     {
+    //                     int ai = offset*(2*tid+1)-1;
+    //                     int bi = offset*(2*tid+2)-1;
+    //                     v_block_alloc_size[bi] += v_block_alloc_size[ai];
+    //                     }
+    //                     offset *= 2;
                     
                 
-            }
+    //         }
     
-            if (tid == 0) {
-            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                v_queuesize[0] = v_block_alloc_size[n - 1];
-                v_block_alloc_size[gridDim.x - 1] = 0;
-                *e_queuesize = 0;
+    //         if (tid == 0) {
+    //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+    //             v_queuesize[0] = v_block_alloc_size[n - 1];
+    //             v_block_alloc_size[gridDim.x - 1] = 0;
+    //             *e_queuesize = 0;
     
-            }
-            //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-            for (int d = 1; d < gridDim.x; d *= 2) {
-                offset >>= 1;
-                __syncthreads();
-                if (local_tid < d) {
-                        int ai = offset*(2*tid+1)-1;
-                        int bi = offset*(2*tid+2)-1;
-                        int t = v_block_alloc_size[ai];
-                        v_block_alloc_size[ai] = v_block_alloc_size[bi];
-                        v_block_alloc_size[bi] += t;
+    //         }
+    //         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+    //         for (int d = 1; d < gridDim.x; d *= 2) {
+    //             offset >>= 1;
+    //             __syncthreads();
+    //             if (local_tid < d) {
+    //                     int ai = offset*(2*tid+1)-1;
+    //                     int bi = offset*(2*tid+2)-1;
+    //                     int t = v_block_alloc_size[ai];
+    //                     v_block_alloc_size[ai] = v_block_alloc_size[bi];
+    //                     v_block_alloc_size[bi] += t;
     
-                }
-            }
-    }
+    //             }
+    //         }
+    // }
     
     //now we compact
-    // if(b1_initial[local_tid])
-    // {
-    //     int ver = e_queue[tid];
-    //     int temp = v_block_alloc_size[tid>>10];
-    //     if (gridDim.x == 1) temp = 0;
-    //     distances[ver] = level + 1;
-    //     v_queue[temp + b2_initial[local_tid]] = ver;
-    // }
+    if(b1_initial[local_tid])
+    {
+        int ver = e_queue[tid];
+        int temp = v_block_alloc_size[tid>>10];
+        if (gridDim.x == 1) temp = 0;
+        distances[ver] = level + 1;
+        v_queue[temp + b2_initial[local_tid]] = ver;
+    }
 }
 
 
