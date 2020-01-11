@@ -373,7 +373,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaDeviceSynchronize() );
         printf("expansion, e_size: %d\n\n\n", *e_queuesize);
         printf("\n\n\n e_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
-        if(level == 1) printf("\n\n\n e_frontier ");for(int i = 0; i < e_queuesize; i++) printf("%d ", e_queue[i]);printf("\n\n\n");
+        if(level == 1) printf("\n\n\n e_frontier ");for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]);printf("\n\n\n");
         extra = *e_queuesize;
         extra--;
         extra |= extra >> 1;
