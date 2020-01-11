@@ -5,6 +5,15 @@
 #include <queue>
 #include <thrust/reduce.h>
 
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
 
 void bfsCPU(Graph &G) {
     G.distances[G.root] = 0;
@@ -356,7 +365,8 @@ void runGpu(int startVertex, Graph &G) {
         mem = (extra)*2*sizeof(int);
         printf("e size is : %d", extra);
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size,distances, level, extra);
-        cudaDeviceSynchronize();
+        gpuErrchk( cudaPeekAtLastError() );
+        gpuErrchk( cudaDeviceSynchronize() );
         printf("\n\n\n");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
