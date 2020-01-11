@@ -193,7 +193,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(distances[e_queue[tid]] >= 0)
             b1_initial[local_tid] = 0;
     }
-    printf("i work3");
+    //printf("i work3");
 
 
     if(tid < extra) {
