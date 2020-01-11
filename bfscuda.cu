@@ -234,13 +234,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             }
         }
-        printf("i work7");
 
         __syncthreads();
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
-    printf("i work8");
-    return;
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
@@ -256,7 +253,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     
                 
             }
-
+            printf("i work8");
+            return;
     
             if (tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
@@ -279,6 +277,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 }
             }
     }
+    return;
     //now we compact
     if(b1_initial[local_tid] != b1_initial[local_tid + 1] && tid < *e_queuesize)
     {
