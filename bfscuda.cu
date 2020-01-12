@@ -282,7 +282,7 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
-    while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+    //while(*v_queuesize) { // it will work until the size of vertex frontier is 0
         *counter = 0;
         *extra = *v_queuesize;
         *extra--;
@@ -326,7 +326,7 @@ void runGpu(int startVertex, Graph &G) {
         if(level == 1) printf("\n\n\n v_frontier ");for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]);printf("\n\n\n");
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
-    }
+    //}
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
