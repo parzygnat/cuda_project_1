@@ -73,10 +73,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(tid < n) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
-        if(prefixSum[local_tid] != 0) printf("I'm %d and my prefix sum is %d\n\n", tid, prefixSum[local_tid]);
         //if(level == 1) printf("my tid is %d and my prefix sum is %d u is %d and u+1 is %d\n", tid, prefixSum[local_tid], rvector[u], rvector[u + 1]);
     }
-    if(level == 1) return;
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
@@ -97,7 +95,11 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             total = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
+            if(total != 0) printf("I'm %d and my total is %d\n\n", tid, total);
         }
+        
+        if(level == 1) return;
+
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
