@@ -47,7 +47,7 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
+__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, volatile int *v_queuesize, volatile int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
@@ -164,7 +164,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 }
 }
 
-__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
+__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, volatile int *v_queuesize, volatile int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
@@ -394,8 +394,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaFree(e_queuesize);
     cudaFree(v_queue);
     cudaFree(e_queue);
-    cudaFree(e_block_alloc_size);
-    cudaFree(v_block_alloc_size);
+    cudaFree((void*)e_block_alloc_size);
+    cudaFree((void*)v_block_alloc_size);
     cudaFree(distances);
     cudaFree(cvector);
     cudaFree(rvector);
