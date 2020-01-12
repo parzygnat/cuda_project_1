@@ -272,7 +272,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 }
             }
         }
-    volatile int blockoff;
+    int blockoff;
     int* x = v_block_alloc_size + blockIdx.x;
     asm ("ld.volatile.global.s32 %0, [%1];" : "=r"(blockoff) : "r"(x));
     __syncthreads();
