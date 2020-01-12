@@ -287,7 +287,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             return;
         int ver = e_queue[tid];
         int temp = v_block_alloc_size[blockIdx.x];
-        if (gridDim.x == 1) blockoff = 0;
+        if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
         return;
@@ -302,7 +302,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(local_tid==0) {
         printf("my blockid is %d and my block offset is %d\n", blockIdx.x, temp);
         }
-        v_queue[temp + blockoff] = ver;
+        v_queue[temp + temp] = ver;
     }
 }
     
