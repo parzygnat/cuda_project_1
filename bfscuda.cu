@@ -75,42 +75,41 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
-        for (int d = n>>1; d > 0; d >>=1) {
-            __syncthreads();
-                    if(local_tid < d && tid < extra)
-                    {
-                    int ai = offset*(2*local_tid+1)-1;
-                    int bi = offset*(2*local_tid+2)-1;
-                    if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("ai is %d and bi is %d", ai, bi);
-                    prefixSum[bi] += prefixSum[ai];
-                    }
-                    offset *= 2;
-                
+    for (int d = n>>1; d > 0; d >>=1) {
+        __syncthreads();
+                if(local_tid < d && tid < extra)
+                {
+                int ai = offset*(2*local_tid+1)-1;
+                int bi = offset*(2*local_tid+2)-1;
+                if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("ai is %d and bi is %d", ai, bi);
+                prefixSum[bi] += prefixSum[ai];
+                }
+                offset *= 2;
             
+        
+    }
+
+    if (local_tid == 0  && tid < extra) {
+        // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+        total = prefixSum[n - 1];
+        prefixSum[n - 1] = 0;
+    }
+
+    //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+    for (int d = 1; d < n; d *= 2) {
+        offset >>= 1;
+        __syncthreads();
+        if (local_tid < d  && tid < extra) {
+                int ai = offset*(2*local_tid+1)-1;
+                int bi = offset*(2*local_tid+2)-1;
+
+                int t = prefixSum[ai];
+                prefixSum[ai] = prefixSum[bi];
+                prefixSum[bi] += t;
+
         }
+    }
 
-        if (local_tid == 0  && tid < extra) {
-            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            total = prefixSum[n - 1];
-            prefixSum[n - 1] = 0;
-        }
-
-        //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < n; d *= 2) {
-            offset >>= 1;
-            __syncthreads();
-            if (local_tid < d  && tid < extra) {
-                    int ai = offset*(2*local_tid+1)-1;
-                    int bi = offset*(2*local_tid+2)-1;
-
-                    int t = prefixSum[ai];
-                    prefixSum[ai] = prefixSum[bi];
-                    prefixSum[bi] += t;
-
-            }
-        }
-
-    __syncthreads();
     if(local_tid == 0 && level == 1) { printf("dzialam %d \n", blockIdx.x);
      }
     if(level == 1) return;
