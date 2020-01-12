@@ -272,7 +272,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 }
             }
         }
-    
+    volatile int blockoff;
+    asm ("ld.global.cg.f32 %0,[%1];" : "=l"(v_block_alloc_size[blockIdx.x]) : "l"(&blockoff));
     __syncthreads();
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
@@ -322,8 +323,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&v_queuesize, sizeof(int));
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
-    cudaMallocManaged(&v_block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
-    cudaMallocManaged(&e_block_alloc_size, num_vertices*sizeof(int)/1024 + 1);
+    cudaMallocManaged(&v_block_alloc_size, num_vertices*sizeof(volatile int)/1024 + 1);
+    cudaMallocManaged(&e_block_alloc_size, num_vertices*sizeof(volatile int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
     
     //initializations 
