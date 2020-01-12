@@ -193,13 +193,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
 
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-    if(tid >= *e_queuesize)
-    return;
-    
+
         offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-                    if(local_tid < d)
+                    if(local_tid < d  && tid < extra)
                     {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
@@ -210,7 +208,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             
         }
 
-        if (local_tid == 0) {
+        if (local_tid == 0  && tid < extra) {
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             *v_queuesize = b1_initial[n - 1];
@@ -225,7 +223,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (local_tid < d) {
+            if (local_tid < d && tid < extra) {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
 
@@ -240,12 +238,12 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     
     __syncthreads();
-
+    if(&& gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
             for (int d = gridDim.x>>1; d > 0; d >>=1) {
                 __syncthreads();
-                        if(local_tid < d)
+                        if(local_tid < d && tid < gridDim.x)
                         {
                         int ai = offset*(2*local_tid+1)-1;
                         int bi = offset*(2*local_tid+2)-1;
@@ -265,7 +263,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             for (int d = 1; d < gridDim.x; d *= 2) {
                 offset >>= 1;
                 __syncthreads();
-                if (local_tid < d) {
+                if (local_tid < d && tid < gridDim.x) {
                         int ai = offset*(2*local_tid+1)-1;
                         int bi = offset*(2*local_tid+2)-1;
                         int t = v_block_alloc_size[ai];
@@ -273,6 +271,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         v_block_alloc_size[bi] += t;
                 }
             }
+        }
+    
     __syncthreads();
     if(local_tid == 1023 || tid == *e_queuesize) {
         // if(distances[e_queue[tid]] >= 0)
