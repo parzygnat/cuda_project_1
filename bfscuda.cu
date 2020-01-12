@@ -97,7 +97,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             prefixSum[n - 1] = 0;
             if(total != 0) printf("I'm %d and my total is %d\n\n", tid, total);
         }
-        
+
         if(level == 1) return;
 
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -337,14 +337,14 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 10000000; i++){
+    for(int i = 1; i < 1 + 1500; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 10000000 + 1; i++) {
+    for(int i = 0; i < 1 + 1500 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
         else
-        G.rvector.push_back(10000000);
+        G.rvector.push_back(1500);
     }
     //run CPU sequential bfs
     runCpu(0, G);
