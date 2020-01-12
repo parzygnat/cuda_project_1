@@ -276,6 +276,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             }
     }
     __syncthreads();
+    int i = 0;
+    printf("works for %d\n", tid);
     if(local_tid == 1023 || tid == *e_queuesize) {
         // if(distances[e_queue[tid]] >= 0)
         //     return;
