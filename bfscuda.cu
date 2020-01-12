@@ -47,7 +47,7 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, volatile int* v_block_alloc_size, volatile int* e_block_alloc_size, int* distances, int level, int extra)
+__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize,   int* v_block_alloc_size,   int* e_block_alloc_size, int* distances, int level, int extra)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
@@ -164,7 +164,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 }
 }
 
-__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize,  int* e_queuesize, volatile int* v_block_alloc_size, volatile int* e_block_alloc_size, int* distances, int level, int extra)
+__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize,  int* e_queuesize,   int* v_block_alloc_size,   int* e_block_alloc_size, int* distances, int level, int extra)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
@@ -274,7 +274,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
     int blockoff;
     int* x = v_block_alloc_size + blockIdx.x;
-    asm ("ld.volatile.global.s32 %0, [%1];" : "=r"(blockoff) : "r"(x));
+    asm ("ld. .global.s32 %0, [%1];" : "=r"(blockoff) : "r"(x));
     __syncthreads();
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
@@ -290,7 +290,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < *e_queuesize && (b1_initial[local_tid] != b1_initial[local_tid + 1]))
     {
         int ver = e_queue[tid];
-        volatile int temp = *(v_block_alloc_size + blockIdx.x);
+          int temp = *(v_block_alloc_size + blockIdx.x);
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         if(local_tid==0) {
@@ -310,8 +310,8 @@ void runGpu(int startVertex, Graph &G) {
     int num_threads;
     int* v_queue;
     int* e_queue;
-    volatile int* v_block_alloc_size;
-    volatile int* e_block_alloc_size;
+    int* v_block_alloc_size;
+    int* e_block_alloc_size;
     int* distances;
     int* cvector;
     int* rvector;
@@ -324,8 +324,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaMallocManaged(&v_queuesize, sizeof(int));
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
-    cudaMallocManaged(&v_block_alloc_size, num_vertices*sizeof(volatile int)/1024 + 1);
-    cudaMallocManaged(&e_block_alloc_size, num_vertices*sizeof(volatile int)/1024 + 1);
+    cudaMallocManaged(&v_block_alloc_size, num_vertices*sizeof(  int)/1024 + 1);
+    cudaMallocManaged(&e_block_alloc_size, num_vertices*sizeof(  int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
     
     //initializations 
