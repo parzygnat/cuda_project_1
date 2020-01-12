@@ -163,10 +163,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     }
 
 }
-    if(tid == 0) *v_queuesize = 0;
-
-
-
 }
 
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* v_block_alloc_size, int* e_block_alloc_size, int* distances, int level, int extra)
