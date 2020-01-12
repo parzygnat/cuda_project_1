@@ -66,9 +66,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         else n = extra;
     }
     
-    if(tid < extra && tid >= *v_queuesize) {
-        prefixSum[local_tid] = 0;
-    }
+    prefixSum[local_tid] = 0;
 
     if(tid < n) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
@@ -85,6 +83,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                     {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
+                    if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("ai is %d and bi is %d", ai, bi);
                     prefixSum[bi] += prefixSum[ai];
                     }
                     offset *= 2;
