@@ -95,7 +95,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
 
         if (local_tid == 0) {
-            int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = prefixSum[n - 1];
             total = prefixSum[n - 1];
@@ -219,7 +218,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
         if (local_tid == 0  && tid < extra) {
-            int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             *v_queuesize = b1_initial[n - 1];
             total = *v_queuesize;
@@ -330,6 +328,7 @@ void runGpu(int startVertex, Graph &G) {
     int* counter;
     int* distances;
     int* cvector;
+    int* extra;
     int* rvector;
     int *e_queuesize;
     int *v_queuesize;
@@ -381,7 +380,6 @@ void runGpu(int startVertex, Graph &G) {
         *e_queuesize = *counter;
         *counter = 0;
         printf("expansion, e_size: %d\n\n\n", *e_queuesize);
-        printf("\n\n\n e_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
         if(level == 1) printf("\n\n\n e_frontier ");for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]);printf("\n\n\n");
         extra = *e_queuesize;
         extra--;
@@ -401,7 +399,6 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
         printf("contraction, v_size: %d\n\n\n", *v_queuesize);
-        printf("\n\n\n v_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
         if(level == 1) printf("\n\n\n v_frontier ");for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]);printf("\n\n\n");
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
@@ -413,8 +410,6 @@ void runGpu(int startVertex, Graph &G) {
     cudaFree(e_queuesize);
     cudaFree(v_queue);
     cudaFree(e_queue);
-    cudaFree((void*)e_block_alloc_size);
-    cudaFree((void*)v_block_alloc_size);
     cudaFree(distances);
     cudaFree(cvector);
     cudaFree(rvector);
