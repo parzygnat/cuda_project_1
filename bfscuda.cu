@@ -70,7 +70,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(tid < extra && tid >= *v_queuesize) {
         prefixSum[local_tid] = 0;
     }
-
+    if(level == 1) return;
 
     if(tid < n) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
