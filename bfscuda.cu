@@ -193,7 +193,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
 
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-
+    if(tid >= *e_queuesize)
+    return;
+    
         offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
@@ -272,7 +274,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 }
             }
     __syncthreads();
-    printf("works for %d\n", tid);
     if(local_tid == 1023 || tid == *e_queuesize) {
         // if(distances[e_queue[tid]] >= 0)
         //     return;
