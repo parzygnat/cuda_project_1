@@ -152,7 +152,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 }
 
     if(tid < *v_queuesize) {
-    if(level == 1) return;
     //saving into global edge frontier buffer
     int iter = 0;
     int temp = e_block_alloc_size[tid>>10];
@@ -240,8 +239,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     }
 
-    __syncthreads();
-
     if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
@@ -299,9 +296,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
     }
-    return;
-
-
 }
     
 
