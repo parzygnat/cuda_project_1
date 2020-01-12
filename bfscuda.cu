@@ -71,7 +71,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(tid < n) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
-        if(level == 1) printf("my tid is %d and my prefix sum is %d\n", tid, prefixSum[local_tid]);
+        if(level == 1) printf("my tid is %d and my prefix sum is %d u is %d and u+1 is %d\n", tid, prefixSum[local_tid], rvector[u], rvector[u + 1]);
     }
     
     if(tid < extra) {
