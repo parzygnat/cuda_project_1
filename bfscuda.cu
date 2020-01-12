@@ -48,14 +48,17 @@ void runCpu(int startVertex, Graph &G) {
     
 }
 
-__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize,   int* v_block_alloc_size,   int* e_block_alloc_size, int* distances, int level, int extra)
+__global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize, int* e_queuesize, int* distances, int level, int extra, int* counter)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     __shared__ int prefixSum[1024];
+    __shared__ int total;
+    __shared__ int block_alloc_size;
     int u = v_queue[tid];
     int n = *v_queuesize;
     int offset = 1;
+    
     
     if(tid < extra) {
         if(*v_queuesize > 1024) {
@@ -95,7 +98,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             e_queuesize[0] = prefixSum[n - 1];
-            e_block_alloc_size[block] = prefixSum[n - 1];
+            total = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
         }
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -113,49 +116,53 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
-
-    if(tid < gridDim.x && gridDim.x != 1) {
-    //scan on offsets produced by blocks in 
-        offset = 1;
-        for (int d = gridDim.x>>1; d > 0; d >>=1) {
-            __syncthreads();
-                    if(local_tid < d)
-                    {
-                    int ai = offset*(2*local_tid+1)-1;
-                    int bi = offset*(2*local_tid+2)-1;
-                    e_block_alloc_size[bi] += e_block_alloc_size[ai];
-                    }
-                    offset *= 2;
+{
+    //     if(tid < gridDim.x && gridDim.x != 1) {
+    //     //scan on offsets produced by blocks in 
+    //         offset = 1;
+    //         for (int d = gridDim.x>>1; d > 0; d >>=1) {
+    //             __syncthreads();
+    //                     if(local_tid < d)
+    //                     {
+    //                     int ai = offset*(2*local_tid+1)-1;
+    //                     int bi = offset*(2*local_tid+2)-1;
+    //                     e_block_alloc_size[bi] += e_block_alloc_size[ai];
+    //                     }
+    //                     offset *= 2;
+                    
                 
-            
-        }
+    //         }
 
-        if (tid == 0) {
-        // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = e_block_alloc_size[n - 1];
-            e_block_alloc_size[gridDim.x - 1] = 0;
+    //         if (tid == 0) {
+    //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+    //             e_queuesize[0] = e_block_alloc_size[n - 1];
+    //             e_block_alloc_size[gridDim.x - 1] = 0;
 
-        }
-        //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < gridDim.x; d *= 2) {
-            offset >>= 1;
-            __syncthreads();
-            if (local_tid < d) {
-                    int ai = offset*(2*local_tid+1)-1;
-                    int bi = offset*(2*local_tid+2)-1;
+    //         }
+    //         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+    //         for (int d = 1; d < gridDim.x; d *= 2) {
+    //             offset >>= 1;
+    //             __syncthreads();
+    //             if (local_tid < d) {
+    //                     int ai = offset*(2*local_tid+1)-1;
+    //                     int bi = offset*(2*local_tid+2)-1;
 
-                    int t = e_block_alloc_size[ai];
-                    e_block_alloc_size[ai] = e_block_alloc_size[bi];
-                    e_block_alloc_size[bi] += t;
+    //                     int t = e_block_alloc_size[ai];
+    //                     e_block_alloc_size[ai] = e_block_alloc_size[bi];
+    //                     e_block_alloc_size[bi] += t;
 
-            }
-        }
+    //             }
+    //         }
+    // }
 }
+    if(local_tid == 0) {
+        block_alloc_size = atomicAdd(counter, total);
+    }
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
     int iter = 0;
-    int temp = e_block_alloc_size[tid>>10];
+    int temp = block_alloc_size;
     if (gridDim.x == 1) temp = 0;
     for(int i = rvector[u]; i < rvector[u + 1]; i++) {
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
@@ -165,11 +172,13 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 }
 }
 
-__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize,  int* e_queuesize,   int* v_block_alloc_size,   int* e_block_alloc_size, int* distances, int level, int extra)
+__global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize,  int* e_queuesize, int* distances, int level, int extra, int* counter)
 {
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     extern __shared__ int b1_initial[];
+    __shared__ int block_alloc_size;
+    __shared__ int total;
     int n;
     int offset = 1;
 
@@ -213,7 +222,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             int block = tid >> 10;
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             *v_queuesize = b1_initial[n - 1];
-            v_block_alloc_size[block] = *v_queuesize;
+            total = *v_queuesize;
             //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
             b1_initial[n - 1] = 0;
 
@@ -237,47 +246,49 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
-    
+    {
+        // __syncthreads();
+        // if(gridDim.x != 1) {
+        // //scan on offsets produced by blocks in 
+        //         offset = 1;
+        //         for (int d = gridDim.x>>1; d > 0; d >>=1) {
+        //             __syncthreads();
+        //                     if(local_tid < d && tid < gridDim.x)
+        //                     {
+        //                     int ai = offset*(2*local_tid+1)-1;
+        //                     int bi = offset*(2*local_tid+2)-1;
+        //                     v_block_alloc_size[bi] += v_block_alloc_size[ai];
+        //                     }
+        //                     offset *= 2;
+        //         }
+
+        //         if (tid == 0) {
+        //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+        //             v_queuesize[0] = v_block_alloc_size[gridDim.x - 1];
+        //             v_block_alloc_size[gridDim.x - 1] = 0;
+        
+        //         }
+
+        //         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+        //         for (int d = 1; d < gridDim.x; d *= 2) {
+        //             offset >>= 1;
+        //             __syncthreads();
+        //             if (local_tid < d && tid < gridDim.x) {
+        //                     int ai = offset*(2*local_tid+1)-1;
+        //                     int bi = offset*(2*local_tid+2)-1;
+        //                     int t = v_block_alloc_size[ai];
+        //                     v_block_alloc_size[ai] = v_block_alloc_size[bi];
+        //                     v_block_alloc_size[bi] += t;
+        //             }
+        //         }
+        //     }
+    }
+
     __syncthreads();
-    if(gridDim.x != 1) {
-    //scan on offsets produced by blocks in 
-            offset = 1;
-            for (int d = gridDim.x>>1; d > 0; d >>=1) {
-                __syncthreads();
-                        if(local_tid < d && tid < gridDim.x)
-                        {
-                        int ai = offset*(2*local_tid+1)-1;
-                        int bi = offset*(2*local_tid+2)-1;
-                        v_block_alloc_size[bi] += v_block_alloc_size[ai];
-                        }
-                        offset *= 2;
-            }
 
-            if (tid == 0) {
-            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-                v_queuesize[0] = v_block_alloc_size[gridDim.x - 1];
-                v_block_alloc_size[gridDim.x - 1] = 0;
-    
-            }
-
-            //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-            for (int d = 1; d < gridDim.x; d *= 2) {
-                offset >>= 1;
-                __syncthreads();
-                if (local_tid < d && tid < gridDim.x) {
-                        int ai = offset*(2*local_tid+1)-1;
-                        int bi = offset*(2*local_tid+2)-1;
-                        int t = v_block_alloc_size[ai];
-                        v_block_alloc_size[ai] = v_block_alloc_size[bi];
-                        v_block_alloc_size[bi] += t;
-                }
-            }
-        }
-
-    __syncthreads();
-    cooperative_groups::grid_group g = cooperative_groups::this_grid();
-    g.sync();
-
+    if(local_tid == 0) {
+        block_alloc_size = atomicAdd(counter, total);
+    }
     // int blockoff;
     // int* x = v_block_alloc_size + blockIdx.x;
     // asm ("ld.global.cg.s32 %0, [%1];" : "=r"(blockoff) : "l"(x));
@@ -286,7 +297,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(distances[e_queue[tid]] >= 0)
             return;
         int ver = e_queue[tid];
-        int temp = v_block_alloc_size[blockIdx.x];
+        int temp = block_alloc_size;
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
@@ -296,7 +307,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < *e_queuesize && (b1_initial[local_tid] != b1_initial[local_tid + 1]))
     {
         int ver = e_queue[tid];
-          int temp = v_block_alloc_size[blockIdx.x];
+        int temp = block_alloc_size;
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         if(local_tid==0) {
@@ -316,8 +327,7 @@ void runGpu(int startVertex, Graph &G) {
     int num_threads;
     int* v_queue;
     int* e_queue;
-    int* v_block_alloc_size;
-    int* e_block_alloc_size;
+    int* counter;
     int* distances;
     int* cvector;
     int* rvector;
@@ -328,10 +338,10 @@ void runGpu(int startVertex, Graph &G) {
     //cuda unified memory allocations
     cudaMallocManaged(&e_queuesize, sizeof(int));
     cudaMallocManaged(&v_queuesize, sizeof(int));
+    cudaMallocManaged(&counter, sizeof(int));
+    cudaMallocManaged(&extra, sizeof(int));
     cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
     cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
-    cudaMallocManaged(&v_block_alloc_size, num_vertices*sizeof(  int)/1024 + 1);
-    cudaMallocManaged(&e_block_alloc_size, num_vertices*sizeof(  int)/1024 + 1);
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
     
     //initializations 
@@ -342,17 +352,15 @@ void runGpu(int startVertex, Graph &G) {
     std::copy(G.cvector.begin(), G.cvector.end(), cvector);
     std::copy(G.rvector.begin(), G.rvector.end(), rvector);
     v_queue[0] = G.root;
-    //for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
-    v_block_alloc_size[0] = 0;
-    e_block_alloc_size[0] = 0;
     *v_queuesize = 1;
     level = 0;
     int mem;
-    int extra;
+    *counter = 0;
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
     while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+        *counter = 0;
         extra = *v_queuesize;
         extra--;
         extra |= extra >> 1;
@@ -367,9 +375,11 @@ void runGpu(int startVertex, Graph &G) {
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
-        expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
+        expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, extra, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
+        *e_queuesize = *counter;
+        *counter = 0;
         printf("expansion, e_size: %d\n\n\n", *e_queuesize);
         printf("\n\n\n e_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", e_block_alloc_size[i]);printf("\n\n\n");
         if(level == 1) printf("\n\n\n e_frontier ");for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]);printf("\n\n\n");
@@ -386,9 +396,10 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = (extra)/1025 + 1;
         if(num_blocks==1) num_threads = extra; else num_threads = 1024;
         mem = (num_threads)*sizeof(int);
-        contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, v_block_alloc_size, e_block_alloc_size, distances, level, extra);
+        contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, extra, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
+        *v_queuesize = *counter;
         printf("contraction, v_size: %d\n\n\n", *v_queuesize);
         printf("\n\n\n v_block ");for(int i = 0; i < num_blocks; i++) printf("%d ", v_block_alloc_size[i]); printf("\n\n\n");
         if(level == 1) printf("\n\n\n v_frontier ");for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]);printf("\n\n\n");
