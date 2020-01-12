@@ -118,7 +118,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
     }
-    __syncthreads();
 
     if(level == 1) {        printf("\n\n\nYO MY TOTAL IS %d\n\n\n", total);   return; }
 
