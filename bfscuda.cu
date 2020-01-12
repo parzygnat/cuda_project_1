@@ -339,9 +339,12 @@ int main(void)
         else
         G.rvector.push_back(2147483640);
     }
-    //run CPU sequential bfs
-    runCpu(0, G);
+    
     //run GPU parallel bfs
     runGpu(0, G);
+
+    //run CPU sequential bfs
+    runCpu(0, G);
+
     return 0;
 }
