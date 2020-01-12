@@ -4,6 +4,7 @@
 #include "bfscpu.h"
 #include <queue>
 #include <thrust/reduce.h>
+#include <cooperative_groups.h>
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -274,16 +275,18 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     __syncthreads();
+    grid_group g = this_grid();
+    g.sync();
 
-    int blockoff;
-    int* x = v_block_alloc_size + blockIdx.x;
-    asm ("ld.global.cg.s32 %0, [%1];" : "=r"(blockoff) : "l"(x));
+    // int blockoff;
+    // int* x = v_block_alloc_size + blockIdx.x;
+    // asm ("ld.global.cg.s32 %0, [%1];" : "=r"(blockoff) : "l"(x));
 
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
             return;
         int ver = e_queue[tid];
-        int temp = blockoff;
+        int temp = v_block_alloc_size[gridIdx.x];
         if (gridDim.x == 1) blockoff = 0;
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
@@ -293,7 +296,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < *e_queuesize && (b1_initial[local_tid] != b1_initial[local_tid + 1]))
     {
         int ver = e_queue[tid];
-          int temp = blockoff;
+          int temp = v_block_alloc_size[gridIdx.x];
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         if(local_tid==0) {
