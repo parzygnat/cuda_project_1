@@ -238,7 +238,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     
     __syncthreads();
-    if(&& gridDim.x != 1) {
+    if(gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
             for (int d = gridDim.x>>1; d > 0; d >>=1) {
