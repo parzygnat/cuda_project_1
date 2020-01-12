@@ -68,7 +68,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     
     prefixSum[local_tid] = 0;
 
-    if(tid < n) {
+    if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
     }
