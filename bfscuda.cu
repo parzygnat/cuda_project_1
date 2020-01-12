@@ -192,7 +192,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
 
 
-    if(tid < extra) {
+
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
 
         offset = 1;
@@ -237,9 +237,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
-    }
+    
 
-    if(tid < gridDim.x && gridDim.x != 1) {
     //scan on offsets produced by blocks in 
             offset = 1;
             for (int d = gridDim.x>>1; d > 0; d >>=1) {
@@ -251,8 +250,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         v_block_alloc_size[bi] += v_block_alloc_size[ai];
                         }
                         offset *= 2;
-                    
-                
             }
 
             if (tid == 0) {
@@ -274,9 +271,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                         v_block_alloc_size[bi] += t;
                 }
             }
-    }
     __syncthreads();
-    int i = 0;
     printf("works for %d\n", tid);
     if(local_tid == 1023 || tid == *e_queuesize) {
         // if(distances[e_queue[tid]] >= 0)
