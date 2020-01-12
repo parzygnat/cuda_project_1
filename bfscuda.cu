@@ -275,13 +275,13 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     
     __syncthreads();
     if(local_tid == 1023 || tid == *e_queuesize) {
-        // if(distances[e_queue[tid]] >= 0)
-        //     return;
-        // int ver = e_queue[tid];
-        // int temp = v_block_alloc_size[tid>>10];
-        // if (gridDim.x == 1) temp = 0;
-        // distances[ver] = level + 1;
-        // v_queue[temp + b1_initial[local_tid]] = ver;
+        if(distances[e_queue[tid]] >= 0)
+            return;
+        int ver = e_queue[tid];
+        int temp = v_block_alloc_size[tid>>10];
+        if (gridDim.x == 1) temp = 0;
+        distances[ver] = level + 1;
+        v_queue[temp + b1_initial[local_tid]] = ver;
         return;
     }
     //now we compact
