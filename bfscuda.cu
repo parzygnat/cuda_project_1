@@ -308,8 +308,8 @@ void runGpu(int startVertex, Graph &G) {
     int num_threads;
     int* v_queue;
     int* e_queue;
-    int* v_block_alloc_size;
-    int* e_block_alloc_size;
+    volatile int* v_block_alloc_size;
+    volatile int* e_block_alloc_size;
     int* distances;
     int* cvector;
     int* rvector;
