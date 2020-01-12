@@ -192,7 +192,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
 
 
-
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
 
         offset = 1;
@@ -238,6 +237,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
         // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
     
+    __syncthreads();
 
     //scan on offsets produced by blocks in 
             offset = 1;
