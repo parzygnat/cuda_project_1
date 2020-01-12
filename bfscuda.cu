@@ -230,7 +230,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         if(local_tid==0) {
-        printf("my blockid is %d and my block offset is %d\n", blockIdx.x, temp);
         }
         v_queue[b1_initial[local_tid] + temp] = ver;
     }
@@ -300,8 +299,6 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
         *counter = 0;
-        printf("expansion, e_size: %d\n\n\n", *e_queuesize);
-        if(level == 1) printf("\n\n\n e_frontier ");for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]);printf("\n\n\n");
         *extra = *e_queuesize;
         *extra--;
         *extra |= *extra >> 1;
@@ -310,8 +307,7 @@ void runGpu(int startVertex, Graph &G) {
         *extra |= *extra >> 8;
         *extra |= *extra >> 16;
         *extra++;
-        //print newly produced edge frontier
-        //printf("E: size: %d, [", *e_queuesize); for(int i = 0; i < *e_queuesize; i++) printf("%d ", e_queue[i]); printf("]\n");
+
         num_blocks = (*extra)/1025 + 1;
         if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
         mem = (num_threads)*sizeof(int);
@@ -320,9 +316,6 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        printf("contraction, v_size: %d\n\n\n", *v_queuesize);
-        if(level == 1) printf("\n\n\n v_frontier ");for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]);printf("\n\n\n");
-        //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
     }
     auto end = std::chrono::system_clock::now();
