@@ -293,7 +293,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     {
         printf("im %d and im here \n", tid);
         int ver = e_queue[tid];
-        int temp = v_block_alloc_size[tid>>10];
+        int temp = v_block_alloc_size[blockIdx.x];
         if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
