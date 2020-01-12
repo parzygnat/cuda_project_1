@@ -43,7 +43,6 @@ void runCpu(int startVertex, Graph &G) {
     bfsCPU(G);
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    for(int i = 0; i < G.distances.size(); i++) printf("%d ", G.distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     
 }
