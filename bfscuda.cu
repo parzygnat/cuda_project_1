@@ -277,8 +277,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     int blockoff;
     int* x = v_block_alloc_size + blockIdx.x;
-    asm ("ld.global.s64 %0, [%1];" : "=r"(blockoff) : "l"(x));
-    
+    asm ("ld.global.b32 %0, [%1];" : "=r"(blockoff) : "l"(x));
+
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
             return;
