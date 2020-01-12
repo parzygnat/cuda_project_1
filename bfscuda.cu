@@ -274,7 +274,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
     int blockoff;
     int* x = v_block_alloc_size + blockIdx.x;
-    asm ("ld. .global.s32 %0, [%1];" : "=s"(blockoff) : "s"(x));
+    asm ("ld. .global.s32 %0, [%1];" : "=r"(blockoff) : "g"(x));
     __syncthreads();
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
