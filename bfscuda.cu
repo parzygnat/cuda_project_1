@@ -119,8 +119,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         block_alloc_size = atomicAdd(counter, total);
     }
 
-    if(level == 1) {        printf("\n\n\nYO MY TOTAL IS %d\n\n\n", total);   return; }
-
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
