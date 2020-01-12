@@ -115,45 +115,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             }
         }
 }
-{
-    //     if(tid < gridDim.x && gridDim.x != 1) {
-    //     //scan on offsets produced by blocks in 
-    //         offset = 1;
-    //         for (int d = gridDim.x>>1; d > 0; d >>=1) {
-    //             __syncthreads();
-    //                     if(local_tid < d)
-    //                     {
-    //                     int ai = offset*(2*local_tid+1)-1;
-    //                     int bi = offset*(2*local_tid+2)-1;
-    //                     e_block_alloc_size[bi] += e_block_alloc_size[ai];
-    //                     }
-    //                     offset *= 2;
-                    
-                
-    //         }
-
-    //         if (tid == 0) {
-    //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-    //             e_queuesize[0] = e_block_alloc_size[n - 1];
-    //             e_block_alloc_size[gridDim.x - 1] = 0;
-
-    //         }
-    //         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-    //         for (int d = 1; d < gridDim.x; d *= 2) {
-    //             offset >>= 1;
-    //             __syncthreads();
-    //             if (local_tid < d) {
-    //                     int ai = offset*(2*local_tid+1)-1;
-    //                     int bi = offset*(2*local_tid+2)-1;
-
-    //                     int t = e_block_alloc_size[ai];
-    //                     e_block_alloc_size[ai] = e_block_alloc_size[bi];
-    //                     e_block_alloc_size[bi] += t;
-
-    //             }
-    //         }
-    // }
-}
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
     }
@@ -242,45 +203,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             }
         }
-
-        // now we have an array of neighbors, a mask signifying which we can copy further, and total number of elements to copy
-    {
-        // __syncthreads();
-        // if(gridDim.x != 1) {
-        // //scan on offsets produced by blocks in 
-        //         offset = 1;
-        //         for (int d = gridDim.x>>1; d > 0; d >>=1) {
-        //             __syncthreads();
-        //                     if(local_tid < d && tid < gridDim.x)
-        //                     {
-        //                     int ai = offset*(2*local_tid+1)-1;
-        //                     int bi = offset*(2*local_tid+2)-1;
-        //                     v_block_alloc_size[bi] += v_block_alloc_size[ai];
-        //                     }
-        //                     offset *= 2;
-        //         }
-
-        //         if (tid == 0) {
-        //         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-        //             v_queuesize[0] = v_block_alloc_size[gridDim.x - 1];
-        //             v_block_alloc_size[gridDim.x - 1] = 0;
-        
-        //         }
-
-        //         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        //         for (int d = 1; d < gridDim.x; d *= 2) {
-        //             offset >>= 1;
-        //             __syncthreads();
-        //             if (local_tid < d && tid < gridDim.x) {
-        //                     int ai = offset*(2*local_tid+1)-1;
-        //                     int bi = offset*(2*local_tid+2)-1;
-        //                     int t = v_block_alloc_size[ai];
-        //                     v_block_alloc_size[ai] = v_block_alloc_size[bi];
-        //                     v_block_alloc_size[bi] += t;
-        //             }
-        //         }
-        //     }
-    }
 
     __syncthreads();
 
