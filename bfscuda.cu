@@ -275,7 +275,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     __syncthreads();
-    grid_group g = this_grid();
+    cooperative_groups::grid_group g = cooperative_groups::this_grid();
     g.sync();
 
     // int blockoff;
