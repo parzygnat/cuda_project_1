@@ -110,9 +110,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
     }
 
-    if(local_tid == 0 && level == 1) { printf("dzialam %d \n", blockIdx.x);
-     }
-    if(level == 1) return;
 
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
