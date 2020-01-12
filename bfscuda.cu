@@ -204,11 +204,13 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             }
         }
 
-    __syncthreads();
+        __syncthreads();
 
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
     }
+    __syncthreads();
+
     // int blockoff;
     // int* x = v_block_alloc_size + blockIdx.x;
     // asm ("ld.global.cg.s32 %0, [%1];" : "=r"(blockoff) : "l"(x));
