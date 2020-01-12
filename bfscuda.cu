@@ -299,6 +299,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         distances[ver] = level + 1;
         v_queue[temp + b1_initial[local_tid]] = ver;
     }
+    return;
 
 
 }
