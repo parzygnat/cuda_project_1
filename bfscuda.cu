@@ -235,7 +235,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(local_tid==0) {
         printf("my blockid is %d and my block offset is %d\n", blockIdx.x, temp);
         }
-        v_queue[temp + temp] = ver;
+        v_queue[b1_initial[local_tid] + temp] = ver;
     }
 }
     
