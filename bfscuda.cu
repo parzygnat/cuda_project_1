@@ -315,6 +315,7 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = (*extra)/1025 + 1;
         if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
         mem = (num_threads)*sizeof(int);
+        if(mem == 0) break;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, *extra, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
