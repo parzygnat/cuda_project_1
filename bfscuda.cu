@@ -96,7 +96,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         if (local_tid == 0) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            e_queuesize[0] = prefixSum[n - 1];
             total = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
         }
@@ -117,7 +116,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 }
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
+        printf("\n\n\nYO MY TOTAL IS %d\n\n\n", total)
     }
+    if(level == 1) return;
+
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
@@ -211,10 +213,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     }
     __syncthreads();
 
-    // int blockoff;
-    // int* x = v_block_alloc_size + blockIdx.x;
-    // asm ("ld.global.cg.s32 %0, [%1];" : "=r"(blockoff) : "l"(x));
-
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
             return;
@@ -282,7 +280,7 @@ void runGpu(int startVertex, Graph &G) {
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
-    //while(*v_queuesize) { // it will work until the size of vertex frontier is 0
+    while(*v_queuesize) { // it will work until the size of vertex frontier is 0
         *counter = 0;
         *extra = *v_queuesize;
         *extra--;
@@ -326,7 +324,7 @@ void runGpu(int startVertex, Graph &G) {
         if(level == 1) printf("\n\n\n v_frontier ");for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]);printf("\n\n\n");
         //printf("V: size: %d, [", *v_queuesize); for(int i = 0; i < *v_queuesize; i++) printf("%d ", v_queue[i]); printf("]\n");
         level++;
-    //}
+    }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
