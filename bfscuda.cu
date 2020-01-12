@@ -73,6 +73,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(tid < n) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
+        if(total != 0) printf("I'm %d and my total is %d\n\n", tid, total);
         //if(level == 1) printf("my tid is %d and my prefix sum is %d u is %d and u+1 is %d\n", tid, prefixSum[local_tid], rvector[u], rvector[u + 1]);
     }
 
@@ -183,8 +184,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
         if (local_tid == 0  && tid < extra) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            *v_queuesize = b1_initial[n - 1];
-            total = *v_queuesize;
+            total = b1_initial[n - 1];
             //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
             b1_initial[n - 1] = 0;
 
