@@ -78,12 +78,11 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         //if(level == 1) printf("my tid is %d and my prefix sum is %d u is %d and u+1 is %d\n", tid, prefixSum[local_tid], rvector[u], rvector[u + 1]);
     }
     
-    if(tid < extra) {
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
         for (int d = n>>1; d > 0; d >>=1) {
             __syncthreads();
-                    if(local_tid < d)
+                    if(local_tid < d && tid < extra)
                     {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
@@ -94,7 +93,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
             
         }
 
-        if (local_tid == 0) {
+        if (local_tid == 0  && tid < extra) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
             total = prefixSum[n - 1];
             prefixSum[n - 1] = 0;
@@ -103,7 +102,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
             __syncthreads();
-            if (local_tid < d) {
+            if (local_tid < d  && tid < extra) {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
 
@@ -113,13 +112,14 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
             }
         }
-}
-__syncthreads();
+
+    __syncthreads();
 
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
     }
     __syncthreads();
+
     if(level == 1) {        printf("\n\n\nYO MY TOTAL IS %d\n\n\n", total);   return; }
 
 
