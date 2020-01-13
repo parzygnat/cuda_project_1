@@ -55,18 +55,17 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     __shared__ int prefixSum[1024];
     __shared__ int block_alloc_size;
     int n;
+    int u;
     int offset = 1;    
-    
+    prefixSum[local_tid] = 0;
     
     if(*v_queuesize > 1024) {
         n = 1024;
     }
     else n = extra;
     
-    
-    prefixSum[local_tid] = 0;
-    if(local_tid < n && tid < *v_queuesize) {
-        int u = v_queue[tid];
+    if(tid < *v_queuesize) {
+        u = v_queue[tid]
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
     }
@@ -85,7 +84,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
         offset *= 2;
     }
-    __syncthreads(); 
 
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
