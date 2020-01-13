@@ -270,6 +270,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
+        printf("EQUEUE:")for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", e_queue[i]);
         *counter = 0;
         *extra = *e_queuesize;
         *extra--;
@@ -288,13 +289,13 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        //for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", v_queue[i]);
+        printf("VQUEUE:")for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", v_queue[i]);
         level++;
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    for (int i = 0; i < G.rvector.size() - 1; i++) printf("%d", distances[i]);
+    for (int i = 0; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
     cudaFree(v_queue);
