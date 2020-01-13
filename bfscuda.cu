@@ -203,7 +203,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             }
         }
 
-        __syncthreads();
+    __syncthreads();
 
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
@@ -333,14 +333,14 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 214748364; i++){
+    for(int i = 1; i < 1 + 1500; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 214748364 + 1; i++) {
+    for(int i = 0; i < 1 + 1500 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
         else
-        G.rvector.push_back(214748364);
+        G.rvector.push_back(1500);
     }
 
     //run GPU parallel bfs
