@@ -53,7 +53,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int local_tid = threadIdx.x;
     __shared__ int prefixSum[1024];
     __shared__ int block_alloc_size;
-    int u = v_queue[tid];
+    if(tid < *v_queuesize)
+        int u = v_queue[tid];
+
     int n = *v_queuesize;
     int offset = 1;    
     
@@ -131,28 +133,19 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int n;
     int offset = 1;
 
-    if(tid < extra) {
-        if(*e_queuesize > 1024) {
-            n = 1024;
-        }
-        else n = extra;
+    if(*e_queuesize > 1024) {
+        n = 1024;
     }
-
-    if(tid < extra && tid >= *e_queuesize) {
-        b1_initial[local_tid] = 0;
-    }
-
+    else n = extra;
+    
+    b1_initial[local_tid] = 0;
     
     if(local_tid < n && tid < *e_queuesize) {
-        b1_initial[local_tid] = 1;
-
-        if(distances[e_queue[tid]] >= 0)
-            b1_initial[local_tid] = 0;
+        if(distances[e_queue[tid]] == -1)
+            b1_initial[local_tid] = 1;
     }
 
-
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-    __syncthreads();
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
         __syncthreads();
