@@ -63,11 +63,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int offset = 1;    
     prefixSum[local_tid] = 0;
     int _vsize = *v_queuesize;
-    
-    if(_vsize > 1024) {
-        n = 1024;
-    }
-    else n = _vsize;
+    n = 1024;
     
     if(tid < _vsize) {
         u = v_queue[tid];
@@ -130,11 +126,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int visited = 0;
     int offset = 1;
     int _esize = *e_queuesize;
-
-    if(_esize > 1024) {
-        n = 1024;
-    }
-    else n = _esize;
+    n = 1024;
+    
     b1_initial[local_tid] = 0;
     if(local_tid < n && tid < _esize) {
         if(distances[e_queue[tid]] == -1)
@@ -170,7 +163,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     }
-    return;
 
     __syncthreads();
     //now we compact
