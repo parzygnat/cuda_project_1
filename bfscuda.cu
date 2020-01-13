@@ -55,11 +55,12 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     __shared__ int prefixSum[1024];
     __shared__ int block_alloc_size;
     int u;
+    int n;
+
     if(tid < *v_queuesize) {
         u = v_queue[tid];
     }
 
-    int n = *v_queuesize;
     int offset = 1;    
     
     
@@ -70,8 +71,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     
     
     prefixSum[local_tid] = 0;
-    __syncthreads(); 
-
     if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
@@ -115,17 +114,16 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     __syncthreads();
 
-    if(tid < *v_queuesize) {
-    //saving into global edge frontier buffer
-    int iter = 0;
-    int temp = block_alloc_size;
-    if (gridDim.x == 1) temp = 0;
-    for(int i = rvector[u]; i < rvector[u + 1]; i++) {
-        e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
-        iter++;
-    }
+    if(tid < *v_queuesize) 
+    {
+        //saving into global edge frontier buffer
+        int iter = 0;
+        for(int i = rvector[u]; i < rvector[u + 1]; i++) {
+            e_queue[iter + prefixSum[local_tid] + block_alloc_size] = cvector[i];
+            iter++;
+        }
 
-}
+    }
 }
 
 __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_queue, int *v_queuesize,  int* e_queuesize, int* distances, int level, int extra, int* counter)
@@ -143,7 +141,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     else n = extra;
     
     b1_initial[local_tid] = 0;
-    
     if(local_tid < n && tid < *e_queuesize) {
         if(distances[e_queue[tid]] == -1)
             visited = b1_initial[local_tid] = 1;
@@ -187,12 +184,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if(tid < *e_queuesize && visited)
     {
         int ver = e_queue[tid];
-        int temp = block_alloc_size;
-        if (gridDim.x == 1) temp = 0;
         distances[ver] = level + 1;
         if(local_tid==0) {
         }
-        v_queue[b1_initial[local_tid] + temp] = ver;
+        v_queue[b1_initial[local_tid] + block_alloc_size] = ver;
     }
 }
     
