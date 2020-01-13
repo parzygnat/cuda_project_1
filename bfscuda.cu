@@ -54,13 +54,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int local_tid = threadIdx.x;
     __shared__ int prefixSum[1024];
     __shared__ int block_alloc_size;
-    int u;
     int n;
-
-    if(tid < *v_queuesize) {
-        u = v_queue[tid];
-    }
-
     int offset = 1;    
     
     
@@ -72,6 +66,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     
     prefixSum[local_tid] = 0;
     if(local_tid < n && tid < *v_queuesize) {
+        int u = v_queue[tid];
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
     }
