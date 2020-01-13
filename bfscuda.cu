@@ -98,6 +98,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, prefixSum[n - 1]);
+        if(level == 0) printf("\n total is %d \n", prefixSum[n-1]);
         prefixSum[n - 1] = 0;
     }
 
@@ -168,7 +169,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
-        if(level == 0) printf("\n total is %d \n", b1_initial[n-1]);
         //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
         b1_initial[n - 1] = 0;
     }
