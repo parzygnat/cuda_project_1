@@ -259,13 +259,13 @@ void runGpu(int startVertex, Graph &G) {
     while(*v_queuesize) { // it will work until the size of vertex frontier is 0
         *counter = 0;
         *extra = *v_queuesize;
-        *extra--;
+        (*extra)--;
         *extra |= *extra >> 1;
         *extra |= *extra >> 2;
         *extra |= *extra >> 4;
         *extra |= *extra >> 8;
         *extra |= *extra >> 16;
-        *extra++;
+        (*extra)++;
         //number of blocks scaled to the frontier size
         num_blocks = *extra/1025 + 1;
         //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
