@@ -181,7 +181,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     }
-    if(level==2) return;
 
     __syncthreads();
     //now we compact
