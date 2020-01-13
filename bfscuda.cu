@@ -135,6 +135,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     extern __shared__ int b1_initial[];
     __shared__ int block_alloc_size;
     int n;
+    int visited = 0;
     int offset = 1;
     if(*e_queuesize > 1024) {
         n = 1024;
@@ -145,7 +146,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     
     if(local_tid < n && tid < *e_queuesize) {
         if(distances[e_queue[tid]] == -1)
-            b1_initial[local_tid] = 1;
+            visited = b1_initial[local_tid] = 1;
     }
 
 
@@ -167,7 +168,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
         b1_initial[n - 1] = 0;
     }
-    __syncthreads();
 
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
     for (int d = 1; d < n; d *= 2) {
@@ -183,19 +183,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     }
     __syncthreads();
-
-    if(local_tid == 1023 || tid == *e_queuesize) {
-        if(distances[e_queue[tid]] >= 0)
-            return;
-        int ver = e_queue[tid];
-        int temp = block_alloc_size;
-        if (gridDim.x == 1) temp = 0;
-        distances[ver] = level + 1;
-        v_queue[temp + b1_initial[local_tid]] = ver;
-        return;
-    }
     //now we compact
-    if(tid < *e_queuesize && (b1_initial[local_tid] != b1_initial[local_tid + 1]))
+    if(tid < *e_queuesize && visited)
     {
         int ver = e_queue[tid];
         int temp = block_alloc_size;
