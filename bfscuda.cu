@@ -130,7 +130,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int visited = 0;
     int offset = 1;
     int _esize = *e_queuesize;
-    return;
 
     if(_esize > 1024) {
         n = 1024;
@@ -141,8 +140,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(distances[e_queue[tid]] == -1)
             visited = b1_initial[local_tid] = 1;
     }
-
-
+    return;
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
