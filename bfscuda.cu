@@ -68,6 +68,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     
     
     prefixSum[local_tid] = 0;
+    __syncthreads(); 
 
     if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
@@ -89,12 +90,14 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
         offset *= 2;
     }
+    __syncthreads(); 
 
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, prefixSum[n - 1]);
         prefixSum[n - 1] = 0;
     }
+    __syncthreads(); 
 
 
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
@@ -158,6 +161,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         offset *= 2; 
     }
+    __syncthreads();
 
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
@@ -165,6 +169,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
         b1_initial[n - 1] = 0;
     }
+    __syncthreads();
 
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
     for (int d = 1; d < n; d *= 2) {
@@ -179,6 +184,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     }
+    __syncthreads();
 
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
@@ -284,6 +290,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
+        for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", v_queue[i]);
         level++;
     }
     auto end = std::chrono::system_clock::now();
@@ -293,6 +300,8 @@ void runGpu(int startVertex, Graph &G) {
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
     cudaFree(v_queue);
+    cudaFree(counter);
+    cudaFree(extra);
     cudaFree(e_queue);
     cudaFree(distances);
     cudaFree(cvector);
@@ -304,14 +313,14 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 10000; i++){
+    for(int i = 1; i < 1 + 100000; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 10000 + 1; i++) {
+    for(int i = 0; i < 1 + 100000 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
         else
-        G.rvector.push_back(10000);
+        G.rvector.push_back(100000);
     }
 
     //run GPU parallel bfs
