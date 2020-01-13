@@ -57,7 +57,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int u;
     if(tid < *v_queuesize) {
         u = v_queue[tid];
-        if(level==0)printf("my tid is %d and my u is %d\n", tid, u);
     }
 
     int n = *v_queuesize;
@@ -76,7 +75,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
-        if(level == 0) printf("my tid is %d and my prefix sum is %d\n", tid, prefixSum[local_tid]);
     }
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
@@ -98,7 +96,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, prefixSum[n - 1]);
-        if(level == 0) printf("\n total is %d \n", prefixSum[n-1]);
         prefixSum[n - 1] = 0;
     }
 
@@ -125,7 +122,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if (gridDim.x == 1) temp = 0;
     for(int i = rvector[u]; i < rvector[u + 1]; i++) {
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
-        if(level==0)printf("iter is %d i is %d and position is %d\n", iter, i, iter + prefixSum[local_tid] + temp);
         iter++;
     }
 
@@ -149,6 +145,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     b1_initial[local_tid] = 0;
     
     if(local_tid < n && tid < *e_queuesize) {
+        printf("i'm thread %d and im handling %d", tid, e_queue[tid]);
         if(distances[e_queue[tid]] == -1)
             b1_initial[local_tid] = 1;
     }
