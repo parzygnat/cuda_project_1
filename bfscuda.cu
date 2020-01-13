@@ -238,21 +238,21 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
         if(*e_queuesize == 0) break;
-        printf("E SIZE: %d\n", *e_queuesize);
+        //printf("E SIZE: %d\n", *e_queuesize);
         *counter = 0;
         num_blocks = (*e_queuesize)/1024 + 1;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        printf("V SIZE: %d\n", *v_queuesize);
+        //printf("V SIZE: %d\n", *v_queuesize);
         level++;
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    for (int i = 0; i < 150; i++) printf(" %d ", distances[i]);
-    for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
+    //for (int i = 0; i < 150; i++) printf(" %d ", distances[i]);
+    //for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
     cudaFree(v_queue);
@@ -268,16 +268,16 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 100 + 10000 + 1000000; i++){
+    for(int i = 1; i < 1 + 128 + 16384 + 2097152; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 100 + 10000 + 1000000 + 1; i++) {
+    for(int i = 0; i < 1 + 128 + 16384 + 2097152 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
-        else if(i < 1 + 100 + 10000)
-        G.rvector.push_back(100*i);
+        else if(i < 1 + 128 + 16384)
+        G.rvector.push_back(128*i);
         else
-        G.rvector.push_back(1000000 + 10000 + 100);
+        G.rvector.push_back(2097152 + 16384 + 128);
     }
 
     //run GPU parallel bfs
