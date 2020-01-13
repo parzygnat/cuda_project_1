@@ -24,8 +24,8 @@ void bfsCPU(Graph &G) {
 }
 
 void runCpu(int startVertex, Graph &G) {
+    return;
     G.root = startVertex;
-        return;
     for (int i = 0; i < G.rvector.size() - 1; i++) G.distances.push_back(-1);
     printf("Starting sequential bfs.\n\n\n");
     auto start = std::chrono::system_clock::now();
