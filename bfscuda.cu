@@ -82,7 +82,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 {
                 int ai = offset*(2*local_tid+1)-1;
                 int bi = offset*(2*local_tid+2)-1;
-                if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("ai is %d and bi is %d", ai, bi);
+                if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("ai is %d and bi is %d\n", ai, bi);
                 prefixSum[bi] += prefixSum[ai];
                 }
                 offset *= 2;
