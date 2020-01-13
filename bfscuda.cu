@@ -274,16 +274,18 @@ int main(void)
     for(int i = 0; i < 1 + 100 + 1000 + 10000 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
-        else if(i < 1 + 100 + 10000)
+        else if(i < 1 + 100 + 1000)
         G.rvector.push_back(100*i);
         else
         G.rvector.push_back(100 + 1000 + 10000);
     }
 
-    //run CPU sequential bfs
-    runCpu(0, G);
     //run GPU parallel bfs
     runGpu(0, G);
+    
+
+    //run CPU sequential bfs
+    runCpu(0, G);
 
     return 0;
 }
