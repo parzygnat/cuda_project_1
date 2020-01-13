@@ -145,7 +145,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     b1_initial[local_tid] = 0;
     
     if(local_tid < n && tid < *e_queuesize) {
-        printf("i'm thread %d and im handling %d", tid, e_queue[tid]);
+        if(level==0)printf("i'm thread %d and im handling %d\n", tid, e_queue[tid]);
         if(distances[e_queue[tid]] == -1)
             b1_initial[local_tid] = 1;
     }
