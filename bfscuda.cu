@@ -328,14 +328,14 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 1500; i++){
+    for(int i = 1; i < 1 + 100000; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 1500 + 1; i++) {
+    for(int i = 0; i < 1 + 100000 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
         else
-        G.rvector.push_back(1500);
+        G.rvector.push_back(100000);
     }
 
     //run GPU parallel bfs
