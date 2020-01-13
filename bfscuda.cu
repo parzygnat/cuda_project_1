@@ -52,7 +52,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int tid = blockIdx.x *blockDim.x + threadIdx.x;
     int local_tid = threadIdx.x;
     __shared__ int prefixSum[1024];
-    __shared__ int total;
     __shared__ int block_alloc_size;
     int u = v_queue[tid];
     int n = *v_queuesize;
@@ -129,7 +128,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int local_tid = threadIdx.x;
     extern __shared__ int b1_initial[];
     __shared__ int block_alloc_size;
-    __shared__ int total;
     int n;
     int offset = 1;
 
@@ -155,46 +153,37 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
     __syncthreads();
-        offset = 1;
-        for (int d = n>>1; d > 0; d >>=1) {
-                    if(local_tid < d  && tid < extra)
-                    {
-                    int ai = offset*(2*local_tid+1)-1;
-                    int bi = offset*(2*local_tid+2)-1;
-                    b1_initial[bi] += b1_initial[ai];
-                    }
-                    offset *= 2;
-                    __syncthreads();
+    offset = 1;
+    for (int d = n>>1; d > 0; d >>=1) {
+        __syncthreads();
+        if(local_tid < d  && tid < extra){
+            int ai = offset*(2*local_tid+1)-1;
+            int bi = offset*(2*local_tid+2)-1;
+            b1_initial[bi] += b1_initial[ai];
+        }
+        offset *= 2; 
+    }
 
-                
-            
+    if (local_tid == 0  && tid < extra) {
+        // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
+        block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
+        //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
+        b1_initial[n - 1] = 0;
+    }
+
+    //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
+    for (int d = 1; d < n; d *= 2) {
+        offset >>= 1;
+        __syncthreads();
+        if (local_tid < d && tid < extra) {
+            int ai = offset*(2*local_tid+1)-1;
+            int bi = offset*(2*local_tid+2)-1;
+            int t = b1_initial[ai];
+            b1_initial[ai] = b1_initial[bi];
+            b1_initial[bi] += t;
         }
 
-        if (local_tid == 0  && tid < extra) {
-            // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
-            //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
-            b1_initial[n - 1] = 0;
-
-        }
-
-
-        //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
-        for (int d = 1; d < n; d *= 2) {
-            offset >>= 1;
-            if (local_tid < d && tid < extra) {
-                    int ai = offset*(2*local_tid+1)-1;
-                    int bi = offset*(2*local_tid+2)-1;
-
-                    int t = b1_initial[ai];
-                    b1_initial[ai] = b1_initial[bi];
-                    b1_initial[bi] += t;
-
-                
-            }
-            __syncthreads();
-
-        }
+    }
 
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
