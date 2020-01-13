@@ -166,7 +166,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
-        printf("\n i, thread no %d, total was\n", tid, b1_initial[n - 1]);
+        printf("\n i, thread no %d, total was %d\n", tid, b1_initial[n - 1]);
         b1_initial[n - 1] = 0;
     }
     __syncthreads();
