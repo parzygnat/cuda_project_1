@@ -47,7 +47,7 @@ void runCpu(int startVertex, Graph &G) {
     bfsCPU(G);
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    //for (int i = 0; i < G.rvector.size() - 1; i++) printf(" %d ", G.distances[i]);
+    for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", G.distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     
 }
@@ -267,16 +267,16 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 128 + 16384; i++){
+    for(int i = 1; i < 1 + 128 + 16384 + 268435456; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 128 + 16384 + 1; i++) {
+    for(int i = 0; i < 1 + 128 + 16384 + 268435456 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
-        else if(i < 1 + 128)
+        else if(i < 1 + 128 + 16384)
         G.rvector.push_back(128*i);
         else
-        G.rvector.push_back(16384 + 128);
+        G.rvector.push_back(268435456 + 16384 + 128);
     }
 
     //run GPU parallel bfs
