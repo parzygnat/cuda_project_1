@@ -248,7 +248,7 @@ void runGpu(int startVertex, Graph &G) {
         *extra |= *extra >> 16;
         (*extra)++;
         //number of blocks scaled to the frontier size
-        num_blocks = *extra/1025 + 1;
+        num_blocks = (*extra)/1024 + 1;
         //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
         if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
@@ -270,7 +270,7 @@ void runGpu(int startVertex, Graph &G) {
         *extra |= *extra >> 16;
         (*extra)++;
 
-        num_blocks = (*extra)/1025 + 1;
+        num_blocks = (*extra)/1024 + 1;
         if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
         mem = (num_threads)*sizeof(int);
         if(mem == 0) break;
