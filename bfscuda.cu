@@ -110,13 +110,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
     }
 
-    __syncthreads();
 
     if(local_tid == 0) {
         block_alloc_size = atomicAdd(counter, total);
     }
-
-    __syncthreads();
 
 
     if(tid < *v_queuesize) {
