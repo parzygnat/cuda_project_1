@@ -98,6 +98,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         prefixSum[n - 1] = 0;
     }
 
+    __syncthreads();
+
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
     for (int d = 1; d < n; d *= 2) {
         offset >>= 1;
@@ -183,6 +185,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
         }
 
+    __syncthreads();
 
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
