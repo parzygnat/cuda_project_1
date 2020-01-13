@@ -135,6 +135,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int n;
     int visited = 0;
     int offset = 1;
+    int u;
+    if(tid < *e_queuesize) {
+        u = e_queue[tid];
+    }
     if(*e_queuesize > 1024) {
         n = 1024;
     }
@@ -183,11 +187,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     //now we compact
     if(tid < *e_queuesize && visited)
     {
-        int ver = e_queue[tid];
-        distances[ver] = level + 1;
+        distances[u] = level + 1;
         if(local_tid==0) {
         }
-        v_queue[b1_initial[local_tid] + block_alloc_size] = ver;
+        v_queue[b1_initial[local_tid] + block_alloc_size] = u;
     }
 }
     
