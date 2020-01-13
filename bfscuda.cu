@@ -74,6 +74,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
+    __syncthreads();
+
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
                 if(local_tid < d && tid < extra)
@@ -157,10 +159,9 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
 
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
-
+    __syncthreads();
         offset = 1;
         for (int d = n>>1; d > 0; d >>=1) {
-            __syncthreads();
                     if(local_tid < d  && tid < extra)
                     {
                     int ai = offset*(2*local_tid+1)-1;
@@ -168,6 +169,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                     b1_initial[bi] += b1_initial[ai];
                     }
                     offset *= 2;
+                    __syncthreads();
+
                 
             
         }
@@ -184,7 +187,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
         for (int d = 1; d < n; d *= 2) {
             offset >>= 1;
-            __syncthreads();
             if (local_tid < d && tid < extra) {
                     int ai = offset*(2*local_tid+1)-1;
                     int bi = offset*(2*local_tid+2)-1;
@@ -195,6 +197,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
                 
             }
+            __syncthreads();
+
         }
 
     if(local_tid == 1023 || tid == *e_queuesize) {
