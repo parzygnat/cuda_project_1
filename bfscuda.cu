@@ -53,8 +53,9 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int local_tid = threadIdx.x;
     __shared__ int prefixSum[1024];
     __shared__ int block_alloc_size;
+    int u;
     if(tid < *v_queuesize)
-        int u = v_queue[tid];
+        u = v_queue[tid];
 
     int n = *v_queuesize;
     int offset = 1;    
