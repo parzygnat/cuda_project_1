@@ -77,6 +77,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
+        __syncthreads(); 
+
                 if(local_tid < d && tid < extra)
                 {
                 int ai = offset*(2*local_tid+1)-1;
@@ -85,10 +87,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 prefixSum[bi] += prefixSum[ai];
                 }
                 offset *= 2;
-        __syncthreads();
-
-            
-        
     }
 
     if (local_tid == 0  && tid < extra) {
