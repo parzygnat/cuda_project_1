@@ -115,6 +115,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         block_alloc_size = atomicAdd(counter, total);
     }
 
+    __syncthreads();
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
