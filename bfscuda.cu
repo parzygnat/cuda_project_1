@@ -6,6 +6,10 @@
 #include <thrust/reduce.h>
 #include <cooperative_groups.h>
 
+#define NUM_BANKS 16 
+#define LOG_NUM_BANKS 4 
+#define CONFLICT_FREE_OFFSET(n) \     ((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS)) 
+
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
@@ -66,12 +70,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     
     if(tid < *v_queuesize) {
         u = v_queue[tid];
-    //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
     }
-
-    //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
-    // blelloch exclusive scan algorithm with upsweep to the left
 
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
@@ -229,18 +229,19 @@ void runGpu(int startVertex, Graph &G) {
     auto start = std::chrono::system_clock::now();
     while(*v_queuesize) { // it will work until the size of vertex frontier is 0
         *counter = 0;
-        *extra = *v_queuesize;
-        (*extra)--;
-        *extra |= *extra >> 1;
-        *extra |= *extra >> 2;
-        *extra |= *extra >> 4;
-        *extra |= *extra >> 8;
-        *extra |= *extra >> 16;
-        (*extra)++;
+         *extra = *v_queuesize;
+        // (*extra)--;
+        // *extra |= *extra >> 1;
+        // *extra |= *extra >> 2;
+        // *extra |= *extra >> 4;
+        // *extra |= *extra >> 8;
+        // *extra |= *extra >> 16;
+        // (*extra)++;
         //number of blocks scaled to the frontier size
         num_blocks = (*extra)/1024 + 1;
         //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
-        if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
+        //if(num_blocks==1) num_threads = *extra; else 
+        num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, *extra, counter);
@@ -251,17 +252,18 @@ void runGpu(int startVertex, Graph &G) {
 
         *counter = 0;
 
-        *extra = *e_queuesize;
-        (*extra)--;
-        *extra |= *extra >> 1;
-        *extra |= *extra >> 2;
-        *extra |= *extra >> 4;
-        *extra |= *extra >> 8;
-        *extra |= *extra >> 16;
-        (*extra)++;
+         *extra = *e_queuesize;
+        // (*extra)--;
+        // *extra |= *extra >> 1;
+        // *extra |= *extra >> 2;
+        // *extra |= *extra >> 4;
+        // *extra |= *extra >> 8;
+        // *extra |= *extra >> 16;
+        // (*extra)++;
 
         num_blocks = (*extra)/1024 + 1;
-        if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
+        //if(num_blocks==1) num_threads = *extra; else
+        num_threads = 1024;
         mem = (num_threads)*sizeof(int);
         if(mem == 0) break;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, *extra, counter);
