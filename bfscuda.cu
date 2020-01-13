@@ -238,14 +238,14 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
         if(*e_queuesize == 0) break;
-        //printf("E SIZE: %d\n", *e_queuesize);
+        printf("E SIZE: %d\n", *e_queuesize);
         *counter = 0;
         num_blocks = (*e_queuesize)/1024 + 1;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        //printf("V SIZE: %d\n", *v_queuesize);
+        printf("V SIZE: %d\n", *v_queuesize);
         level++;
     }
     auto end = std::chrono::system_clock::now();
