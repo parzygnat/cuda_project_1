@@ -234,7 +234,7 @@ void runGpu(int startVertex, Graph &G) {
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
         //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
         expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
-        //gpuErrchk( cudaPeekAtLastError() );
+        gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
         //printf("E SIZE: %d\n", *e_queuesize);
@@ -242,11 +242,11 @@ void runGpu(int startVertex, Graph &G) {
         num_blocks = (*e_queuesize)/1024 + 1;
         if(*e_queuesize == 0) break;
         contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
-        //gpuErrchk( cudaPeekAtLastError() );
+        gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
         //printf("V SIZE: %d\n", *v_queuesize);
-        ++level;
+        level++;
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
@@ -267,16 +267,16 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 100 + 10000; i++){
+    for(int i = 1; i < 1 + 128 + 16384; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 100 + 10000 + 1; i++) {
+    for(int i = 0; i < 1 + 128 + 16384 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
-        else if(i < 1 + 100)
-        G.rvector.push_back(100*i);
+        else if(i < 1 + 128)
+        G.rvector.push_back(128*i);
         else
-        G.rvector.push_back(10000 + 100);
+        G.rvector.push_back(16384 + 128);
     }
 
     //run GPU parallel bfs
