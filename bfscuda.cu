@@ -136,7 +136,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     __shared__ int block_alloc_size;
     int n;
     int offset = 1;
-
     if(*e_queuesize > 1024) {
         n = 1024;
     }
@@ -162,7 +161,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         offset *= 2; 
     }
     __syncthreads();
-
+    if(level==2) return;
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
