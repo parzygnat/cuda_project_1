@@ -193,7 +193,6 @@ void runGpu(int startVertex, Graph &G) {
     G.root = startVertex;
     int level = 0;
     int num_blocks;
-    int num_threads;
     int* v_queue;
     int* e_queue;
     int* counter;
@@ -231,20 +230,17 @@ void runGpu(int startVertex, Graph &G) {
         *counter = 0;
         num_blocks = (*v_queuesize)/1024 + 1;
         //if queue size is bigger than 1024 the numbers of threads has to be kept at 1024 because it's the maximum on CUDA
-        num_threads = 1024;
         //1st phase -> we expand vertex frontier into edge frontier by copying ALL possible neighbors
-        //no threads stay idle apart from last block if num_threads > 1024, all SIMD lanes are utilized when reading from global memory
-        expansion<<<num_blocks, num_threads>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
+        expansion<<<num_blocks, 1024>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
         //printf("E SIZE: %d\n", *e_queuesize);
         *counter = 0;
         num_blocks = (*e_queuesize)/1024 + 1;
-        num_threads = 1024;
-        mem = (num_threads)*sizeof(int);
+        mem = (1024)*sizeof(int);
         if(mem == 0) break;
-        contraction<<<num_blocks, num_threads, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
+        contraction<<<num_blocks, 1024, mem>>>(cvector, rvector, v_queue, e_queue, v_queuesize, e_queuesize, distances, level, counter);
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
