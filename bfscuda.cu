@@ -150,6 +150,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
             b1_initial[local_tid] = 1;
     }
 
+    if(level==0 && tid == 0) {
+        printf("\n b1 initial is: "); for(int i = 0; i < extra; i++) printf(" %d ", b1_initial[i]);printf("\n");
+    }
+
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
