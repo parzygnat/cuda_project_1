@@ -135,10 +135,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int n;
     int visited = 0;
     int offset = 1;
-    int u;
-    if(tid < *e_queuesize) {
-        u = e_queue[tid];
-    }
+
     if(*e_queuesize > 1024) {
         n = 1024;
     }
@@ -149,6 +146,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(distances[e_queue[tid]] == -1)
             visited = b1_initial[local_tid] = 1;
     }
+    if(level==2) return;
 
 
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
@@ -182,11 +180,11 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     }
-
     __syncthreads();
     //now we compact
     if(tid < *e_queuesize && visited)
     {
+        int u = e_queue[tid];
         distances[u] = level + 1;
         if(local_tid==0) {
         }
