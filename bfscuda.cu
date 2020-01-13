@@ -74,6 +74,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
+        if(level == 0) printf("my tid is %d and my prefix sum is \n", tid, prefixSum[local_tid]);
     }
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
