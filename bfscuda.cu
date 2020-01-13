@@ -213,7 +213,6 @@ void runGpu(int startVertex, Graph &G) {
     *v_queuesize = 1;
     level = 0;
     num_threads = 1024;
-    int mem = (num_threads)*sizeof(int);
     *counter = 0;
     *e_queuesize = 0;
     printf("Starting cuda  bfs.\n\n\n");
@@ -240,7 +239,7 @@ void runGpu(int startVertex, Graph &G) {
     }
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    //printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
+    printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     //for (int i = 0; i < 150; i++) printf(" %d ", distances[i]);
     //for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
     cudaFree(v_queuesize);
