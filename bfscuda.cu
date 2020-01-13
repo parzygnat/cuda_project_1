@@ -74,7 +74,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
-    __syncthreads();
 
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
