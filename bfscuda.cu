@@ -130,12 +130,12 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     int visited = 0;
     int offset = 1;
     int _esize = *e_queuesize;
+    return;
 
     if(_esize > 1024) {
         n = 1024;
     }
     else n = _esize;
-    
     b1_initial[local_tid] = 0;
     if(local_tid < n && tid < _esize) {
         if(distances[e_queue[tid]] == -1)
