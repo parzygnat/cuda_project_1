@@ -74,7 +74,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
-        if(level == 1 && prefixSum[local_tid]!= 0) printf("tid is %d \n", tid);
     }
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
@@ -295,7 +294,7 @@ void runGpu(int startVertex, Graph &G) {
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    //for (int i = 0; i < G.rvector.size() - 1; i++) printf("%d", distances[i]);
+    for (int i = 0; i < G.rvector.size() - 1; i++) printf("%d", distances[i]);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
     cudaFree(v_queue);
