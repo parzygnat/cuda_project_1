@@ -145,14 +145,10 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     b1_initial[local_tid] = 0;
     
     if(local_tid < n && tid < *e_queuesize) {
-        if(level==0)printf("i'm thread %d and im handling %d, my logic eval is %d\n", tid, e_queue[tid], distances[e_queue[tid]] == -1);
         if(distances[e_queue[tid]] == -1)
             b1_initial[local_tid] = 1;
     }
 
-    if(level==0 && tid == 0) {
-        printf("\n b1 initial is: "); for(int i = 0; i < extra; i++) printf(" %d ", b1_initial[i]);printf("\n");
-    }
 
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
     offset = 1;
@@ -170,7 +166,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
-        printf("\n i, thread no %d, total was %d\n", tid, b1_initial[n - 1]);
         b1_initial[n - 1] = 0;
     }
     __syncthreads();
@@ -276,7 +271,6 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
-        printf("EQUEUE:"); for (int i = 0; i < *e_queuesize; i++) printf(" %d ", e_queue[i]);
         *counter = 0;
 
         *extra = *e_queuesize;
@@ -296,7 +290,6 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        printf("VQUEUE: "); for (int i = 0; i < *v_queuesize; i++) printf(" %d ", v_queue[i]);
         level++;
     }
     auto end = std::chrono::system_clock::now();
@@ -319,16 +312,16 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    for(int i = 1; i < 1 + 10 + 100; i++){
+    for(int i = 1; i < 1 + 128 + 16384; i++){
         G.cvector.push_back(i);
     }
-    for(int i = 0; i < 1 + 10 + 100 + 1; i++) {
+    for(int i = 0; i < 1 + 128 + 16384 + 1; i++) {
         if(i == 0)
         G.rvector.push_back(0);
-        else if(i < 11)
-        G.rvector.push_back(10*i);
+        else if(i < 1 + 128)
+        G.rvector.push_back(128*i);
         else
-        G.rvector.push_back(100 + 10);
+        G.rvector.push_back(16384 + 128);
     }
 
     //run GPU parallel bfs
