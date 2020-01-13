@@ -55,8 +55,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     __shared__ int prefixSum[1024];
     __shared__ int block_alloc_size;
     int u;
-    if(tid < *v_queuesize)
+    if(tid < *v_queuesize) {
         u = v_queue[tid];
+        if(level==0)printf("my tid is %d and my u is %d", tid, u);
+    }
 
     int n = *v_queuesize;
     int offset = 1;    
