@@ -97,8 +97,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         block_alloc_size = atomicAdd(counter, prefixSum[n - 1]);
         prefixSum[n - 1] = 0;
     }
-    __syncthreads(); 
-
 
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
     for (int d = 1; d < n; d *= 2) {
@@ -114,7 +112,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         }
     }
 
-    //__syncthreads(); WHY?
+    __syncthreads();
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
