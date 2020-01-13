@@ -280,12 +280,10 @@ int main(void)
         G.rvector.push_back(100 + 1000 + 10000);
     }
 
-    //run GPU parallel bfs
-    runGpu(0, G);
-    
-
     //run CPU sequential bfs
     runCpu(0, G);
+    //run GPU parallel bfs
+    runGpu(0, G);
 
     return 0;
 }
