@@ -56,8 +56,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     __shared__ int block_alloc_size;
     int u = v_queue[tid];
     int n = *v_queuesize;
-    int offset = 1;
-    
+    int offset = 1;    
     
     if(tid < extra) {
         if(*v_queuesize > 1024) {
@@ -75,8 +74,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
     // blelloch exclusive scan algorithm with upsweep to the left
+    offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
-        __syncthreads();
                 if(local_tid < d && tid < extra)
                 {
                 int ai = offset*(2*local_tid+1)-1;
@@ -85,6 +84,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 prefixSum[bi] += prefixSum[ai];
                 }
                 offset *= 2;
+        __syncthreads();
+
             
         
     }
@@ -98,7 +99,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
     for (int d = 1; d < n; d *= 2) {
         offset >>= 1;
-        __syncthreads();
         if (local_tid < d  && tid < extra) {
                 int ai = offset*(2*local_tid+1)-1;
                 int bi = offset*(2*local_tid+2)-1;
@@ -108,9 +108,10 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
                 prefixSum[bi] += t;
 
         }
+        __syncthreads();
     }
-    
-    __syncthreads();
+
+    //__syncthreads(); WHY?
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
@@ -173,7 +174,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
 
         if (local_tid == 0  && tid < extra) {
             // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-            total = b1_initial[n - 1];
+            block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
             //printf("\n i, thread no %d, im setting index %d of block_offsets to %d\n", tid, block, b1_initial[n - 1]);
             b1_initial[n - 1] = 0;
 
@@ -195,13 +196,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
                 
             }
         }
-
-    __syncthreads();
-
-    if(local_tid == 0) {
-        block_alloc_size = atomicAdd(counter, total);
-    }
-    __syncthreads();
 
     if(local_tid == 1023 || tid == *e_queuesize) {
         if(distances[e_queue[tid]] >= 0)
