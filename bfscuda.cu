@@ -140,7 +140,6 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         if(distances[e_queue[tid]] == -1)
             visited = b1_initial[local_tid] = 1;
     }
-    return;
     // we create a copy of this and make an array with scan of the booleans. this way we will know how many valid neighbors are there to check
     offset = 1;
     for (int d = n>>1; d > 0; d >>=1) {
@@ -152,6 +151,8 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         offset *= 2; 
     }
+    return;
+
     if (local_tid == 0  && tid < _esize) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
