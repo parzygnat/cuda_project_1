@@ -325,7 +325,7 @@ int main(void)
     }
 
     //run GPU parallel bfs
-    //runGpu(0, G);
+    runGpu(0, G);
     
 
     //run CPU sequential bfs
