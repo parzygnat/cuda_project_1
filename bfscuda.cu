@@ -124,8 +124,8 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if (gridDim.x == 1) temp = 0;
     for(int i = rvector[u]; i < rvector[u + 1]; i++) {
         e_queue[iter + prefixSum[local_tid] + temp] = cvector[i];
+        if(level==0)printf("iter is %d i is %d\n", iter, i);
         iter++;
-        if(level==0)printf("iter is %d\n", iter);
     }
 
 }
