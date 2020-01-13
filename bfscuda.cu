@@ -278,6 +278,7 @@ void runGpu(int startVertex, Graph &G) {
         *e_queuesize = *counter;
         printf("EQUEUE:"); for (int i = 0; i < *e_queuesize; i++) printf(" %d ", e_queue[i]);
         *counter = 0;
+
         *extra = *e_queuesize;
         *extra--;
         *extra |= *extra >> 1;
@@ -285,7 +286,7 @@ void runGpu(int startVertex, Graph &G) {
         *extra |= *extra >> 4;
         *extra |= *extra >> 8;
         *extra |= *extra >> 16;
-        *extra++;
+        (*extra)++;
 
         num_blocks = (*extra)/1025 + 1;
         if(num_blocks==1) num_threads = *extra; else num_threads = 1024;
