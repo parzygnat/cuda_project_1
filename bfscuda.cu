@@ -57,12 +57,12 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     int n = *v_queuesize;
     int offset = 1;    
     
-    if(tid < extra) {
-        if(*v_queuesize > 1024) {
-            n = 1024;
-        }
-        else n = extra;
+    
+    if(*v_queuesize > 1024) {
+        n = 1024;
     }
+    else n = extra;
+    
     
     prefixSum[local_tid] = 0;
 
