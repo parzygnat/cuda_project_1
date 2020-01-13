@@ -275,7 +275,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *e_queuesize = *counter;
-        printf("EQUEUE:"); for (int i = 0; i < *e_queuesize - 1; i++) printf(" %d ", e_queue[i]);
+        printf("EQUEUE:"); for (int i = 0; i < *e_queuesize; i++) printf(" %d ", e_queue[i]);
         *counter = 0;
         *extra = *e_queuesize;
         *extra--;
@@ -294,7 +294,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        printf("VQUEUE: "); for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", v_queue[i]);
+        printf("VQUEUE: "); for (int i = 0; i < *v_queuesize; i++) printf(" %d ", v_queue[i]);
         level++;
     }
     auto end = std::chrono::system_clock::now();
