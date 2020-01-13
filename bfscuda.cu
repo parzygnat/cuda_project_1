@@ -43,7 +43,7 @@ void runCpu(int startVertex, Graph &G) {
     bfsCPU(G);
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
-    for (int i = 0; i < G.rvector.size() - 1; i++) printf(" %d ", G.distances[i]);
+    //for (int i = 0; i < G.rvector.size() - 1; i++) printf(" %d ", G.distances[i]);
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
     
 }
@@ -295,7 +295,7 @@ void runGpu(int startVertex, Graph &G) {
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    for (int i = 0; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
+    //for (int i = 0; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
     cudaFree(v_queue);
