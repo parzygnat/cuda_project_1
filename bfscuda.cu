@@ -240,8 +240,8 @@ void runGpu(int startVertex, Graph &G) {
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    for (int i = 0; i < 150; i++) printf(" %d ", distances[i]);
-    for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
+    //for (int i = 0; i < 150; i++) printf(" %d ", distances[i]);
+    //for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
     cudaFree(v_queue);
@@ -254,10 +254,16 @@ void runGpu(int startVertex, Graph &G) {
 }
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    if(argc < 2)
+  { 
+    printf("Not enough arguments\n");
+   return 0;
+  }
+
+    int config = atoi(argv[1]);
     Graph G;
-    int config = 500;
     for(int i = 1; i < 1 + config + config*config + config*config*config; i++){
         G.cvector.push_back(i);
     }
