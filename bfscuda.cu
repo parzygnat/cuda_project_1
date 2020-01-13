@@ -151,14 +151,12 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
         offset *= 2; 
     }
-    return;
 
     if (local_tid == 0  && tid < _esize) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
         block_alloc_size = atomicAdd(counter, b1_initial[n - 1]);
         b1_initial[n - 1] = 0;
     }
-
     //downsweep - now our array prefixSum has become a prefix sum of numbers of neighbors
     for (int d = 1; d < n; d *= 2) {
         offset >>= 1;
@@ -172,6 +170,7 @@ __global__ void contraction(int* cvector, int* rvector, int* v_queue, int* e_que
         }
 
     }
+    return;
 
     __syncthreads();
     //now we compact
