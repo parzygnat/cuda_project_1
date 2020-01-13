@@ -72,6 +72,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
     if(local_tid < n && tid < *v_queuesize) {
     //we create a block shared array of degrees of the elements of the current vertex frontier
         prefixSum[local_tid] = rvector[u + 1] - rvector[u];
+        if(level == 1 && prefixSum[local_tid]!= 0) printf("tid is %d \n", tid);
     }
 
     //1s of 4 scans in this algorithm - we calculate offsets for writing ALL neighbors into a block shared array
@@ -83,7 +84,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
         if(local_tid < d && tid < extra) {
             int ai = offset*(2*local_tid+1)-1;
             int bi = offset*(2*local_tid+2)-1;
-            if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("tid is %d ai is %d and bi is %d VALUE IS a: %d b: %d\n", tid, ai, bi, prefixSum[ai], prefixSum[bi]);
+            //if(level == 1 && (prefixSum[ai] != 0 || prefixSum[bi] != 0)) printf("tid is %d ai is %d and bi is %d VALUE IS a: %d b: %d\n", tid, ai, bi, prefixSum[ai], prefixSum[bi]);
             prefixSum[bi] += prefixSum[ai];
         }
         offset *= 2;
