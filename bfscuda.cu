@@ -288,7 +288,7 @@ void runGpu(int startVertex, Graph &G) {
         gpuErrchk( cudaPeekAtLastError() );
         gpuErrchk( cudaDeviceSynchronize() );
         *v_queuesize = *counter;
-        for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", v_queue[i]);
+        //for (int i = 0; i < *v_queuesize - 1; i++) printf(" %d ", v_queue[i]);
         level++;
     }
     auto end = std::chrono::system_clock::now();
