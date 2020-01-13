@@ -91,7 +91,7 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
     if (local_tid == 0  && tid < extra) {
         // the efect of upsweep - reduction of the whole array (number of ALL neighbors)
-        total = prefixSum[n - 1];
+        block_alloc_size = atomicAdd(counter, prefixSum[n - 1]);
         prefixSum[n - 1] = 0;
     }
 
@@ -109,13 +109,6 @@ __global__ void expansion(int* cvector, int* rvector, int* v_queue, int* e_queue
 
         }
     }
-
-    __syncthreads();
-
-    if(local_tid == 0) {
-        block_alloc_size = atomicAdd(counter, total);
-    }
-
 
     if(tid < *v_queuesize) {
     //saving into global edge frontier buffer
