@@ -268,7 +268,7 @@ void runGpu(int startVertex, Graph &G) {
 int main(void)
 {
     Graph G;
-    int config = 128;
+    int config = 100;
     for(int i = 1; i < 1 + config + config*config + config*config*config; i++){
         G.cvector.push_back(i);
     }
