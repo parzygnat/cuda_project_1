@@ -321,7 +321,7 @@ int main(void)
         else if(i < 11)
         G.rvector.push_back(10*i);
         else
-        G.rvector.push_back(100);
+        G.rvector.push_back(100 + 10);
     }
 
     //run GPU parallel bfs
