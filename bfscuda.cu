@@ -280,7 +280,7 @@ void runGpu(int startVertex, Graph &G) {
         *counter = 0;
 
         *extra = *e_queuesize;
-        *extra--;
+        (*extra)--;
         *extra |= *extra >> 1;
         *extra |= *extra >> 2;
         *extra |= *extra >> 4;
