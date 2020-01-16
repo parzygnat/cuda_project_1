@@ -241,7 +241,7 @@ void runGpu(int startVertex, Graph &G) {
     auto end = std::chrono::system_clock::now();
     float duration = 1000.0*std::chrono::duration<float>(end - start).count();
     printf("\n \n\nElapsed time in milliseconds : %f ms.\n\n", duration);
-    for (int i = 0; i < 8; i++) printf(" %d ", distances[i]);
+    //for (int i = 0; i < 8; i++) printf(" %d ", distances[i]);
     //for (int i = G.rvector.size() - 10; i < G.rvector.size() - 1; i++) printf(" %d ", distances[i]);
     cudaFree(v_queuesize);
     cudaFree(e_queuesize);
@@ -265,20 +265,20 @@ int main(int argc, char *argv[])
 
     int config = atoi(argv[1]);
     Graph G;
-    // for(int i = 1; i < 1 + config + config*config + config*config*config; i++){
-    //     G.cvector.push_back(i);
-    // }
-    // for(int i = 0; i < 1 + config + config*config + config*config*config + 1; i++) {
-    //     if(i == 0)
-    //     G.rvector.push_back(0);
-    //     else if(i < 1 + config + config*config)
-    //     G.rvector.push_back(config*i);
-    //     else
-    //     G.rvector.push_back(config*config*config + config*config + config);
-    // }
+    for(int i = 1; i < 1 + config + config*config + config*config*config; i++){
+        G.cvector.push_back(i);
+    }
+    for(int i = 0; i < 1 + config + config*config + config*config*config + 1; i++) {
+        if(i == 0)
+        G.rvector.push_back(0);
+        else if(i < 1 + config + config*config)
+        G.rvector.push_back(config*i);
+        else
+        G.rvector.push_back(config*config*config + config*config + config);
+    }
 
-    G.cvector = {1, 3, 0, 2 , 4, 4, 5, 7, 8, 6, 8};
-    G.rvector = {0, 2, 5, 5, 6, 8, 9, 9, 11, 11};
+    // G.cvector = {1, 3, 0, 2 , 4, 4, 5, 7, 8, 6, 8};
+    // G.rvector = {0, 2, 5, 5, 6, 8, 9, 9, 11, 11};
 
     //run GPU parallel bfs
     runGpu(0, G);
