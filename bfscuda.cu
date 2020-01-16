@@ -193,13 +193,14 @@ void runGpu(int startVertex, Graph &G) {
     int *e_queuesize;
     int *v_queuesize;
     int num_vertices = G.rvector.size() - 1;
+    int num_edges = G.cvector.size();
 
     //cuda unified memory allocations
     cudaMallocManaged(&e_queuesize, sizeof(int));
     cudaMallocManaged(&v_queuesize, sizeof(int));
     cudaMallocManaged(&counter, sizeof(int));
-    cudaMallocManaged(&v_queue, num_vertices*sizeof(int));
-    cudaMallocManaged(&e_queue, num_vertices*sizeof(int));
+    cudaMallocManaged(&v_queue, num_edges*sizeof(int));
+    cudaMallocManaged(&e_queue, num_edges*sizeof(int));
     cudaMallocManaged(&distances, num_vertices*sizeof(int));
     
     //initializations 
@@ -264,17 +265,20 @@ int main(int argc, char *argv[])
 
     int config = atoi(argv[1]);
     Graph G;
-    for(int i = 1; i < 1 + config + config*config + config*config*config; i++){
-        G.cvector.push_back(i);
-    }
-    for(int i = 0; i < 1 + config + config*config + config*config*config + 1; i++) {
-        if(i == 0)
-        G.rvector.push_back(0);
-        else if(i < 1 + config + config*config)
-        G.rvector.push_back(config*i);
-        else
-        G.rvector.push_back(config*config*config + config*config + config);
-    }
+    // for(int i = 1; i < 1 + config + config*config + config*config*config; i++){
+    //     G.cvector.push_back(i);
+    // }
+    // for(int i = 0; i < 1 + config + config*config + config*config*config + 1; i++) {
+    //     if(i == 0)
+    //     G.rvector.push_back(0);
+    //     else if(i < 1 + config + config*config)
+    //     G.rvector.push_back(config*i);
+    //     else
+    //     G.rvector.push_back(config*config*config + config*config + config);
+    // }
+
+    G.cvector = {1, 3, 0, 2 , 4, 4, 5, 7, 8, 6, 8};
+    G.rvector = {0, 2, 5, 5, 6, 8, 9, 9, 11, 11};
 
     //run GPU parallel bfs
     runGpu(0, G);
